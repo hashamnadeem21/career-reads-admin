@@ -10,6 +10,10 @@ const MESSAGES: Record<string, [kind: "success" | "warning", text: string]> = {
   duplicated: ["success", "Copied as a new draft."],
   deleted: ["success", "Deleted."],
 };
+const FLAGS: Record<string, [param: string, value: string, text: string]> = {
+  welcome: ["welcome", "1", "Welcome to BlogNest Admin!"],
+  password: ["password", "changed", "Password changed. You've been signed out on other devices."],
+};
 
 /** Shows a toast for ?notice=… after a redirect, then removes it from the URL. */
 export function Notice() {
@@ -17,15 +21,18 @@ export function Notice() {
   const router = useRouter();
   const pathname = usePathname();
   const notice = params.get("notice");
+  const flag = Object.values(FLAGS).find(([param, value]) => params.get(param) === value);
 
   useEffect(() => {
-    if (!notice) return;
-    const message = MESSAGES[notice];
+    if (!notice && !flag) return;
+    const message = notice ? MESSAGES[notice] : undefined;
     if (message) (message[0] === "success" ? toast.success : toast.warning)(message[1]);
+    if (flag) toast.success(flag[2]);
     const next = new URLSearchParams(params.toString());
     next.delete("notice");
+    if (flag) next.delete(flag[0]);
     router.replace(next.size ? `${pathname}?${next}` : pathname, { scroll: false });
-  }, [notice, params, pathname, router]);
+  }, [notice, flag, params, pathname, router]);
 
   return null;
 }

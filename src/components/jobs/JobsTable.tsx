@@ -60,7 +60,7 @@ export function JobsTable({ rows, pageInfo, filtered }: { rows: JobListRow[]; pa
           header: "Job",
           sort: "title",
           cell: (r) => (
-            <Link href={`/jobs/${r.slug}`} className="block min-w-0 hover:text-primary" tabIndex={-1}>
+            <Link href={`/jobs/${r.slug}`} className="block min-w-0 hover:text-link" tabIndex={-1}>
               <span className="line-clamp-1 font-medium">
                 {r.title}
                 {r.featured && <span className="ml-2 text-xs font-semibold text-accent">Featured</span>}

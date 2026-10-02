@@ -8,6 +8,7 @@ import { getDb } from "@/db";
 import { users, userPrefs } from "@/db/schema";
 import { getDummyHash, hashPassword, verifyPassword } from "@/lib/auth/password";
 import { requireUser } from "@/lib/auth/require-user";
+import { newPasswordSchema } from "@/lib/auth/password-rules";
 import { createSession, destroyAllSessions, destroySession } from "@/lib/auth/session";
 import type { FormState } from "@/lib/form-state";
 import { clearRateLimit, limitKey, rateLimit } from "@/lib/rate-limit";
@@ -66,11 +67,7 @@ export async function logout(): Promise<void> {
 const passwordSchema = z
   .object({
     current: z.string().min(1, "Enter your current password"),
-    next: z
-      .string()
-      .min(12, "Use at least 12 characters")
-      .max(200)
-      .refine((v) => /[a-zA-Z]/.test(v) && /[0-9\W_]/.test(v), "Mix letters with numbers or symbols"),
+    next: newPasswordSchema,
     confirm: z.string(),
   })
   .refine((v) => v.next === v.confirm, { message: "The passwords don't match", path: ["confirm"] })

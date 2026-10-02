@@ -33,8 +33,10 @@
   /* Text & accents */
   --ink: #0f172a;
   --ink-muted: #475569;
-  --ink-faint: #64748b;
+  --ink-faint: #5c6779;
   --primary: #2563eb;
+  /* Blue for text and focus rings (links, "View all"); ≥ 4.5:1 on glass in each theme. */
+  --primary-text: #2563eb;
   --primary-ink: #ffffff;
   --primary-soft: rgb(37 99 235 / 0.12);
   --primary-glow: rgb(37 99 235 / 0.35);
@@ -84,8 +86,10 @@
 
   --ink: #f4f4f5;
   --ink-muted: #a1a1aa;
-  --ink-faint: #8b8b94;
-  --primary: #3b82f6;
+  --ink-faint: #9d9da6;
+  /* Darker than the reference #3b82f6 so white button text stays ≥ 4.5:1; text uses --primary-text. */
+  --primary: #2563eb;
+  --primary-text: #93c5fd;
   --primary-ink: #ffffff;
   --primary-soft: rgb(59 130 246 / 0.18);
   --primary-glow: rgb(59 130 246 / 0.45);
@@ -216,7 +220,7 @@
 /* ---------- Focus, motion, skeletons ---------- */
 
 .admin-root :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--primary-text);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px var(--primary-glow);
 }

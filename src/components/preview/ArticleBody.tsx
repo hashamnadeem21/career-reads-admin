@@ -5,6 +5,7 @@ import type { ComponentProps, ReactNode } from "react";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { siteUrl } from "@/lib/site-url";
+import { remarkSafeMdx } from "@/shared/content/safe-mdx";
 import { cn, formatDate } from "@/lib/utils";
 import type { ArticleImage } from "@/shared/content/schema";
 import { injectArticleImages, injectInArticleAd } from "@/shared/content/toc";
@@ -101,14 +102,15 @@ export async function ArticleBody({ source, adsEnabled, images = [] }: { source:
       components={buildComponents(adsEnabled, images)}
       onError={({ error }) => (
         <div role="alert" className="not-prose rounded-xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-800">
-          <p className="font-semibold">This post has a formatting problem and won&apos;t render.</p>
+          <p className="font-semibold">This post has content the site won&apos;t show. Fix it before publishing:</p>
           <pre className="mt-2 whitespace-pre-wrap text-xs">{error.message}</pre>
         </div>
       )}
       options={{
         disableImports: true,
         disableExports: true,
-        mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeSlug] },
+        // "error" mode: the preview shows what the site would strip, instead of hiding it.
+        mdxOptions: { remarkPlugins: [remarkGfm, [remarkSafeMdx, { mode: "error" }]], rehypePlugins: [rehypeSlug] },
       }}
     />
   );

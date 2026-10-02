@@ -69,7 +69,7 @@ export function ListToolbar({
             )}
           >
             {s.label}
-            {s.count !== undefined && <span className="num text-xs opacity-80">{s.count}</span>}
+            {s.count !== undefined && <span className="num text-xs">{s.count}</span>}
           </button>
         ))}
       </div>

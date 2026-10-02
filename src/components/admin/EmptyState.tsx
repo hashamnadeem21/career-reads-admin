@@ -22,7 +22,7 @@ export function EmptyState({
     <div className={cn("flex flex-col items-center justify-center text-center", compact ? "gap-2 py-6" : "gap-3 py-12", className)}>
       <span className="relative flex items-center justify-center" aria-hidden>
         <span className="absolute h-16 w-16 rounded-full bg-primary-soft blur-xl" />
-        <span className="glass-inset relative flex h-12 w-12 items-center justify-center rounded-2xl text-primary">
+        <span className="glass-inset relative flex h-12 w-12 items-center justify-center rounded-2xl text-link">
           <Icon className="h-5 w-5" />
         </span>
       </span>

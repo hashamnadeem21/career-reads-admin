@@ -37,7 +37,7 @@ export default async function MessagesPage({ searchParams }: PageProps<"/message
             className={cn("inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold", tab === t.key ? "bg-primary text-primary-ink" : "text-muted hover:text-ink")}
           >
             {t.label}
-            <span className="num text-xs opacity-80">{t.badge}</span>
+            <span className="num text-xs">{t.badge}</span>
           </Link>
         ))}
       </nav>

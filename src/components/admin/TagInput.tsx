@@ -47,9 +47,9 @@ export function TagInput({
   };
 
   return (
-    <div className={cn(controlClasses(invalid), "flex min-h-10 flex-wrap items-center gap-1.5 py-1.5 focus-within:border-primary")}>
+    <div className={cn(controlClasses(invalid), "flex min-h-10 flex-wrap items-center gap-1.5 py-1.5 focus-within:border-link")}>
       {tags.map((tag) => (
-        <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-primary-soft py-0.5 pl-2.5 pr-1 text-xs font-semibold text-primary">
+        <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-primary-soft py-0.5 pl-2.5 pr-1 text-xs font-semibold text-link">
           {tag}
           <button
             type="button"

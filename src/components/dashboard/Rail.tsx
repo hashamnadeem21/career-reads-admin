@@ -21,7 +21,7 @@ export function QuickActions() {
       {actions.map((a) => (
         <li key={a.href}>
           <Link href={a.href} className="group flex flex-col items-center gap-1.5 text-center text-xs font-medium text-muted hover:text-ink">
-            <span className="glass-inset lift flex h-12 w-12 items-center justify-center !rounded-full text-primary group-hover:bg-hover">
+            <span className="glass-inset lift flex h-12 w-12 items-center justify-center !rounded-full text-link group-hover:bg-hover">
               <a.icon className="h-5 w-5" aria-hidden />
             </span>
             {a.label}
@@ -87,7 +87,7 @@ export function ActivityFeed({ items, compact }: { items: ActivityItem[]; compac
             <span className="font-semibold">{item.userName ?? "A removed user"}</span>{" "}
             {important.has(item.action) ? <Badge tone="warning">{item.action}</Badge> : <span className="text-muted">{item.action}</span>}{" "}
             {item.href ? (
-              <Link href={item.href} className="font-medium italic hover:text-primary">
+              <Link href={item.href} className="font-medium italic hover:text-link">
                 {item.label ?? item.entity}
               </Link>
             ) : (
@@ -129,7 +129,7 @@ export function DashboardRail({
           title="Activity"
           actions={
             activity.length > 0 && (
-              <Link href="/activity" className="text-xs font-semibold text-primary hover:underline">
+              <Link href="/activity" className="text-xs font-semibold text-link hover:underline">
                 View all
               </Link>
             )

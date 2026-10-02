@@ -31,7 +31,8 @@ export function CountUp({ value, duration = 900 }: { value: number; duration?: n
   }, [value, duration]);
 
   return (
-    <span ref={ref} className="num" aria-label={formatNumber(value)}>
+    <span ref={ref} className="num">
+      <span className="sr-only">{formatNumber(value)}</span>
       <span aria-hidden>{formatNumber(shown)}</span>
     </span>
   );

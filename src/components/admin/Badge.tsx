@@ -7,7 +7,7 @@ const tones: Record<Tone, string> = {
   neutral: "bg-inset text-muted",
   success: "bg-success-soft text-success",
   warning: "bg-accent-soft text-accent",
-  info: "bg-info-soft text-primary",
+  info: "bg-info-soft text-link",
   danger: "bg-danger-soft text-danger",
   primary: "bg-primary text-primary-ink",
 };

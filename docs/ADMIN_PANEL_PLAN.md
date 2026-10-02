@@ -8,6 +8,8 @@ The plan is split into **7 phases**. Each phase is a single working session: cop
 
 > **Before you start:** both apps use **Next.js 16**. `middleware.ts` is now **`proxy.ts`**, and `params` / `searchParams` / `headers()` / `cookies()` are all `await`ed. Every prompt says to read the bundled docs in `node_modules/next/dist/docs/` first.
 
+> **Status (2 Oct 2026): all 7 phases are built.** See "Implementation notes" at the end for where the build differs from the original prompts, and `README.md` for setup and deployment.
+
 ---
 
 ## What you'll be able to do when it's finished
@@ -248,3 +250,34 @@ Frosted-glass design with light "Aurora" and dark "Ember" themes. Full spec in *
 - [ ] Add real jobs and 15–20 real articles before applying for AdSense.
 - [ ] Verify the site in Google Search Console and submit `/sitemap.xml`.
 - [ ] Turn ads on from `/settings` once AdSense approves.
+
+---
+
+## Implementation notes (how it was actually built)
+
+Where the build differs from the prompts above, and why:
+
+| Plan said | Built | Why |
+| --- | --- | --- |
+| Auth.js v5 credentials provider | Small built-in session system: argon2id passwords, server-side sessions in Postgres, `requireUser(role?)` | Auth.js v5 is still in beta, and its credentials provider only supports JWT sessions, so removed users and changed roles would stay signed in until the token expired. Database sessions take effect immediately and are easy to audit. |
+| "Invite by email" | Invite creates a one-time link (valid 7 days, stored hashed) that the admin sends | The admin has no email service yet. Plug Resend into `inviteUser` later if you want automatic emails. |
+| `"use cache"` + `cacheTag()` on the site | `unstable_cache` with tags, plus `revalidateTag(tag, { expire: 0 })` | The site doesn't use Cache Components. Switching would be a site-wide migration; the tag-based cache works the same for revalidation. |
+| Login rate limit with `src/lib/forms/rate-limit.ts` | `rate_limits` table in Postgres | In-memory counters don't hold across serverless instances. |
+| "Close now" sets the deadline to today | Sets it to **yesterday** | The site shows a job through the end of its deadline day, so "today" would keep it live until midnight. |
+| Categories are typed lists on the site | Typed lists are now the **fallback**; with a database, the site replaces them in place from the `categories` table (`ensureSiteData()`), and the content schemas accept any slug | So categories can be added in the admin without a code change. Files in `content/` are still checked against the built-in lists. |
+| "Safe MDX pipeline the site already uses" | New `remarkSafeMdx` plugin in the site (synced here) | MDX can run JavaScript in `{expressions}`. With several editors that's a server-side code-execution risk, so expressions, imports, unknown components, event handlers and `javascript:` links are removed on the site and rejected in the editor. All existing articles pass unchanged. |
+| Local development DB | A private Postgres in `.data/pg` (port 54329), started with `npm run db:local` | No account or password needed, and it never touches another Postgres on the machine. |
+| Settings read from DB in `ads.ts` / `site.ts` | Same, via a shared `settings-schema.ts`; placeholders switched on in the admin show in production too | So you can check placements on the live site before AdSense approval. Turn them off before applying. |
+| Uploads with Vercel Blob | Blob in production; in development, files go to the site's `public/uploads/` | So both apps show local uploads without a Blob token. Production refuses local uploads. |
+
+### Changes made in the public site (`blognest`)
+
+These are **not committed**: they sit on top of your existing uncommitted work so you can review them together.
+
+- `src/db/schema.ts` (read-only copy), `src/lib/db.ts`, `src/lib/site-data.ts`, `src/lib/categories-loader.ts`, `src/lib/settings.ts`, `src/lib/settings-schema.ts`
+- `src/lib/content/postgres-repository.ts`, `src/lib/jobs/index.ts` (database reads), `src/lib/jobs/visibility.ts` (moved out so it can be shared)
+- `src/app/api/revalidate/route.ts`, `src/app/api/stats/route.ts`, `src/components/analytics/StatsBeacon.tsx`
+- `src/lib/content/safe-mdx.ts` and its use in `MdxContent.tsx`
+- `src/lib/forms/store.ts` and `src/app/actions.ts` (contact messages and sign-ups are saved to the database too)
+- Categories, ads and contact settings: `src/lib/categories.ts`, `src/lib/jobs/categories.ts`, `src/lib/ads.ts`, `src/lib/site.ts`, schemas, and pages that load them
+- `next.config.ts` (`distDir` override for test builds, Blob image host), `.env.example` (new), README env table, unit tests

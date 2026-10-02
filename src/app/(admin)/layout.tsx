@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/">) {
 
   return (
     <div className="min-h-dvh md:p-4 xl:p-5">
-      <GlassShell className="flex min-h-dvh md:overflow-hidden !rounded-none !border-0 md:min-h-[calc(100dvh-2rem)] md:!rounded-[var(--radius-shell)] md:!border xl:min-h-[calc(100dvh-2.5rem)]">
+      <GlassShell className="flex min-h-dvh md:overflow-clip !rounded-none !border-0 md:min-h-[calc(100dvh-2rem)] md:!rounded-[var(--radius-shell)] md:!border xl:min-h-[calc(100dvh-2.5rem)]">
         <Sidebar user={user} badges={badges} />
         <div className="min-w-0 flex-1 px-4 pb-24 pt-0 md:px-6 md:py-6 md:pb-8 xl:px-8">
           <Topbar user={user} badges={badges} />

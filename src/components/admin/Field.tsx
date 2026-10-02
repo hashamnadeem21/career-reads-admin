@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 export const controlClasses = (invalid?: boolean) =>
   cn(
     "w-full rounded-[var(--radius-control)] border bg-inset px-3.5 text-sm text-ink placeholder:text-faint transition",
-    "focus:border-primary focus:outline-none focus-visible:shadow-[0_0_0_4px_var(--primary-glow)]",
+    "focus:border-link focus:outline-none focus-visible:shadow-[0_0_0_4px_var(--primary-glow)]",
     "disabled:cursor-not-allowed disabled:opacity-60",
     invalid ? "border-danger" : "border-glass-border",
   );

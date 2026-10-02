@@ -9,6 +9,13 @@ Both themes share one layout, one component set, and one set of design tokens. O
 
 > The public website (`blognest` repo) keeps its current clean design. The glass look is for the admin app only.
 
+> **Measured adjustments (Phase 7 QA).** A few token values below differ from the original references so that every text style passes WCAG AA over the brightest part of the backdrop in both themes (checked with a contrast script and an automated axe scan of every page):
+> - `--ink-faint`: light `#5c6779`, dark `#9d9da6`
+> - `--accent` as **text** in light mode: `#b45309` (amber `#f59e0b` stays for fills and the second chart series)
+> - Dark `--primary` (button backgrounds): `#2563eb`, so white button text stays ≥ 4.5:1; blue **text**, links and focus rings use the new `--primary-text` (`#2563eb` light / `#93c5fd` dark)
+> - Dark backdrop blobs are drawn at 45% opacity
+> - Chart colours use a fixed, colour-blind-checked order: blue (page views), amber (apply clicks), green, violet, pink
+
 ---
 
 ## 1. The four layers

@@ -147,7 +147,7 @@ function SearchField({ rail }: { rail?: boolean }) {
 export function Sidebar({ user, badges }: { user: SessionUser; badges: NavBadges }) {
   const pathname = usePathname();
   return (
-    <aside className="hidden w-[76px] shrink-0 flex-col gap-5 border-r border-divider bg-[var(--glass-sidebar)] px-3 py-5 md:flex xl:w-[264px] xl:px-4">
+    <aside className="hidden w-[76px] shrink-0 flex-col gap-5 self-start border-r border-divider bg-[var(--glass-sidebar)] px-3 py-5 md:sticky md:top-4 md:flex md:h-[calc(100dvh-2rem)] xl:top-5 xl:h-[calc(100dvh-2.5rem)] xl:w-[264px] xl:px-4">
       <Link href="/" className="flex justify-center rounded-xl xl:justify-start xl:px-1.5" aria-label="BlogNest Admin dashboard">
         <Logo className="xl:hidden" compact />
         <Logo className="hidden xl:flex" />

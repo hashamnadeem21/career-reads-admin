@@ -54,7 +54,7 @@ export function PublishPanel({
           </div>
         )}
         {state === "live" && (
-          <a href={siteHref} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-primary hover:underline">
+          <a href={siteHref} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-link hover:underline">
             View on site ↗
           </a>
         )}

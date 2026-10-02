@@ -10,6 +10,7 @@ import { articles, authors, categories, dailyStats } from "@/db/schema";
 import { logAudit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/require-user";
 import { checkDraft, postDraftSchema, resolvePublishing, type PostDraft, type PostIntent } from "@/lib/posts/draft";
+import { checkMdxBody } from "@/lib/posts/mdx-check";
 import { revalidateSite } from "@/lib/revalidate-site";
 import { imagePlacementSchema, SLUG_PATTERN } from "@/shared/content/schema";
 
@@ -74,6 +75,10 @@ export async function savePost(input: PostDraft, intentInput: PostIntent, schedu
     db.select().from(authors).where(eq(authors.slug, draft.author)).limit(1),
     draft.slug !== draft.originalSlug ? db.select({ slug: articles.slug }).from(articles).where(eq(articles.slug, draft.slug)).limit(1) : Promise.resolve([]),
   ]);
+  if (!errors.body) {
+    const mdxProblem = await checkMdxBody(draft.body);
+    if (mdxProblem) errors.body = mdxProblem;
+  }
   if (!category.length) errors.category ??= "Pick a category";
   if (!author.length) errors.author ??= "Pick an author";
   if (taken.length) errors.slug = "Another post already uses this slug";

@@ -79,7 +79,7 @@ export function Inbox({ messages: initial }: { messages: InboxMessage[] }) {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-lg font-semibold">{selected.name}</h2>
-                <a href={`mailto:${selected.email}`} className="text-sm text-primary hover:underline">
+                <a href={`mailto:${selected.email}`} className="text-sm text-link hover:underline">
                   {selected.email}
                 </a>
                 <p className="mt-1 text-xs text-muted">

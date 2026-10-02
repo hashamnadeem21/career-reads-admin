@@ -8,9 +8,10 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "same-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
-  // Admin pages are per-user: never stored by shared caches.
-  { key: "Cache-Control", value: "private, no-store" },
 ];
+
+/** Admin pages and data are per-user: never stored by shared caches. */
+const noStore = [{ key: "Cache-Control", value: "private, no-store" }];
 
 const nextConfig: NextConfig = {
   // Lets e2e builds use their own folder so they never clash with `next dev`.
@@ -29,7 +30,11 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Hashed build assets stay cacheable; everything else is private.
+      { source: "/((?!_next/static|_next/image|favicon.ico).*)", headers: noStore },
+    ];
   },
 };
 

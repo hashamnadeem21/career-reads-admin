@@ -64,7 +64,7 @@ export function PostsTable({ rows, pageInfo, filtered }: { rows: PostListRow[]; 
           header: "Post",
           sort: "title",
           cell: (r) => (
-            <Link href={`/posts/${r.slug}`} tabIndex={-1} className="flex min-w-0 items-center gap-3 hover:text-primary">
+            <Link href={`/posts/${r.slug}`} tabIndex={-1} className="flex min-w-0 items-center gap-3 hover:text-link">
               <Thumb src={r.image} />
               <span className="min-w-0">
                 <span className="line-clamp-1 font-medium">

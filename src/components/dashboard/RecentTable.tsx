@@ -13,7 +13,7 @@ function Thumb({ row }: { row: ContentRow & { imageUrl: string | null } }) {
   }
   const Icon = row.kind === "job" ? Briefcase : FileText;
   return (
-    <span className="glass-inset flex h-10 w-14 shrink-0 items-center justify-center text-primary" aria-hidden>
+    <span className="glass-inset flex h-10 w-14 shrink-0 items-center justify-center text-link" aria-hidden>
       <Icon className="h-4 w-4" />
     </span>
   );
@@ -27,7 +27,7 @@ export function RecentTable({ rows }: { rows: (ContentRow & { imageUrl: string |
         id="recent-title"
         title="Recent posts & jobs"
         actions={
-          <Link href="/posts" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+          <Link href="/posts" className="inline-flex items-center gap-1 text-sm font-semibold text-link hover:underline">
             View all <ArrowRight className="h-4 w-4" />
           </Link>
         }
@@ -49,7 +49,7 @@ export function RecentTable({ rows }: { rows: (ContentRow & { imageUrl: string |
               {rows.map((row) => (
                 <tr key={`${row.kind}-${row.slug}`} className="group">
                   <td className="rounded-l-xl px-3 py-2.5 group-hover:bg-hover">
-                    <Link href={row.href} className="flex min-w-0 items-center gap-3 font-medium hover:text-primary">
+                    <Link href={row.href} className="flex min-w-0 items-center gap-3 font-medium hover:text-link">
                       <Thumb row={row} />
                       <span className="min-w-0">
                         <span className="line-clamp-1">{row.title}</span>

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { CalendarClock, FilePen, Hourglass, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/admin/Glass";
+import { Notice } from "@/components/admin/Notice";
 import { DashboardGrid } from "@/components/dashboard/DashboardGrid";
 import { ProgressList } from "@/components/dashboard/ProgressList";
 import { DashboardRail } from "@/components/dashboard/Rail";
@@ -39,7 +40,7 @@ export default async function DashboardPage() {
   ]);
 
   const statCards = (
-    <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-4 [&>*]:w-[78vw] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto">
+    <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-4 [&>*]:w-[78vw] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto">
       <StatCard index={0} title="Published posts" stat={stats.posts} color="var(--chart-1)" href="/posts?status=live" hrefLabel="View live posts" sparkLabel="Trend: live posts over the last 12 weeks." />
       <StatCard index={1} title="Active jobs" stat={stats.jobs} color="var(--chart-2)" href="/jobs?status=live" hrefLabel="View active jobs" sparkLabel="Trend: active jobs over the last 12 weeks." />
       <StatCard index={2} title="Subscribers" stat={stats.subscribers} color="var(--chart-3)" href="/messages?tab=subscribers" hrefLabel="View subscribers" sparkLabel="Trend: newsletter subscribers over the last 12 weeks." />
@@ -49,6 +50,7 @@ export default async function DashboardPage() {
 
   return (
     <>
+      <Notice />
       <PageHeader title="My Dashboard" />
       <DashboardGrid
         initialLayout={resolveLayout(prefs?.dashboardLayout)}

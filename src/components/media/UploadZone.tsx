@@ -51,11 +51,11 @@ export function UploadZone({ onUploaded, multiple = true, compact, autoFocus }: 
         over ? "border-primary bg-primary-soft shadow-[0_0_0_6px_var(--primary-glow),0_0_40px_var(--primary-glow)]" : "border-primary/40 bg-inset hover:border-primary hover:shadow-[0_0_30px_-6px_var(--primary-glow)]",
       )}
     >
-      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-primary" aria-hidden>
+      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-link" aria-hidden>
         <ImageUp className="h-5 w-5" />
       </span>
       <p className="text-sm font-semibold">{pending ? "Uploading…" : "Drop images here, or"}</p>
-      <label className="cursor-pointer text-sm font-semibold text-primary underline-offset-4 hover:underline">
+      <label className="cursor-pointer text-sm font-semibold text-link underline-offset-4 hover:underline">
         browse files
         <input
           ref={input}

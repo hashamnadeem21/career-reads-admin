@@ -1,17 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Client } from "pg";
-import { E2E_DATABASE_URL } from "../../playwright.config";
-import { signIn } from "./helpers";
-
-async function sql(query: string) {
-  const client = new Client({ connectionString: E2E_DATABASE_URL });
-  await client.connect();
-  try {
-    await client.query(query);
-  } finally {
-    await client.end();
-  }
-}
+import { signIn, testSql as sql } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 

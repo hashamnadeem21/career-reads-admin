@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signIn } from "./helpers";
+import { signIn, testSql } from "./helpers";
 
 test("logged-out visitors are redirected to /login, keeping where they were going", async ({ page }) => {
   await page.goto("/jobs");
@@ -81,4 +81,17 @@ test("⌘K palette opens and navigates", async ({ page }) => {
   await input.fill("passkeys");
   await page.getByRole("option", { name: /Passkeys Explained/ }).click();
   await expect(page).toHaveURL(/\/posts\/how-passkeys-work/);
+});
+
+test("login is rate-limited after repeated failures", async ({ page }) => {
+  await testSql("delete from rate_limits where key like 'login-%'");
+  await page.goto("/login");
+  for (let i = 0; i < 11; i++) {
+    await page.getByLabel("Email").fill("nobody@blognest.test");
+    await page.getByLabel("Password").fill(`wrong-${i}`);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect(page.getByRole("button", { name: "Sign in" })).toBeEnabled();
+  }
+  await expect(page.getByText(/Too many sign-in attempts/)).toBeVisible();
+  await testSql("delete from rate_limits where key like 'login-%'");
 });

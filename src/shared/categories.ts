@@ -1,4 +1,13 @@
 // Copied from blognest/src/lib/categories.ts by scripts/sync-shared.mjs. Do not edit here: change the site, then re-run `npm run sync:shared`.
+/**
+ * Blog categories.
+ *
+ * The typed list below is the built-in default. When DATABASE_URL is set the
+ * admin panel manages categories in the database, and `ensureCategories()`
+ * (src/lib/categories-loader.ts) replaces the contents of `categories` and
+ * `categoryList` in place before pages read them, so every existing
+ * synchronous lookup keeps working.
+ */
 export const CATEGORY_SLUGS = [
   "technology",
   "ai",
@@ -8,7 +17,8 @@ export const CATEGORY_SLUGS = [
   "personal-development",
 ] as const;
 
-export type CategorySlug = (typeof CATEGORY_SLUGS)[number];
+/** Any category slug. Categories can be added in the admin panel, so this is not a closed union. */
+export type CategorySlug = string;
 
 export interface Category {
   slug: CategorySlug;
@@ -20,7 +30,7 @@ export interface Category {
   accent: string;
 }
 
-export const categories: Record<CategorySlug, Category> = {
+const defaultCategories: Record<string, Category> = {
   technology: {
     slug: "technology",
     name: "Technology",
@@ -71,12 +81,37 @@ export const categories: Record<CategorySlug, Category> = {
   },
 };
 
-export const categoryList: Category[] = CATEGORY_SLUGS.map((slug) => categories[slug]);
+const DEFAULT_ACCENT = "from-sky-500 to-indigo-500";
+
+/** Shown if content points at a category that hasn't loaded yet, instead of crashing the page. */
+function fallbackCategory(slug: string): Category {
+  const name = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return { slug, name, headline: name, description: name, accent: DEFAULT_ACCENT };
+}
+
+const registry: Record<string, Category> = { ...defaultCategories };
+
+/** Lookup by slug. Unknown slugs return a readable fallback rather than undefined. */
+export const categories: Record<CategorySlug, Category> = new Proxy(registry, {
+  get: (target, key) => (typeof key === "string" && !(key in target) ? fallbackCategory(key) : Reflect.get(target, key)),
+});
+
+/** Categories in display order. */
+export const categoryList: Category[] = CATEGORY_SLUGS.map((slug) => defaultCategories[slug]);
 
 export function isCategorySlug(value: string): value is CategorySlug {
-  return (CATEGORY_SLUGS as readonly string[]).includes(value);
+  return Object.hasOwn(registry, value);
 }
 
 export function getCategory(slug: string): Category | undefined {
-  return isCategorySlug(slug) ? categories[slug] : undefined;
+  return isCategorySlug(slug) ? registry[slug] : undefined;
+}
+
+/** Replaces the active categories (called by the database loader). An empty list keeps the defaults. */
+export function replaceCategories(next: (Omit<Category, "accent"> & { accent?: string | null })[]): void {
+  if (next.length === 0) return;
+  const list = next.map((c) => ({ ...c, accent: c.accent || DEFAULT_ACCENT }));
+  for (const key of Object.keys(registry)) delete registry[key];
+  for (const c of list) registry[c.slug] = c;
+  categoryList.splice(0, categoryList.length, ...list);
 }

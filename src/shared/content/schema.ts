@@ -1,6 +1,5 @@
 // Copied from blognest/src/lib/content/schema.ts by scripts/sync-shared.mjs. Do not edit here: change the site, then re-run `npm run sync:shared`.
 import { z } from "zod";
-import { CATEGORY_SLUGS } from "@/shared/categories";
 
 /**
  * Single source of truth for article and author data shape.
@@ -54,7 +53,8 @@ export const articleFrontmatterSchema = z
   .object({
     title: z.string().trim().min(10).max(110),
     excerpt: z.string().trim().min(50).max(220),
-    category: z.enum(CATEGORY_SLUGS),
+    /** A category slug. Whether it exists is checked against the category list (files or database). */
+    category: z.string().regex(SLUG_PATTERN),
     tags: z
       .array(z.string().trim().min(2).max(40))
       .min(1)

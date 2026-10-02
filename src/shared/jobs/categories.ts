@@ -1,4 +1,8 @@
 // Copied from blognest/src/lib/jobs/categories.ts by scripts/sync-shared.mjs. Do not edit here: change the site, then re-run `npm run sync:shared`.
+/**
+ * Job categories. Like blog categories (see src/lib/categories.ts), this typed
+ * list is the default and is replaced in place by the database loader.
+ */
 export const JOB_CATEGORY_SLUGS = [
   "software-it",
   "design-creative",
@@ -10,7 +14,8 @@ export const JOB_CATEGORY_SLUGS = [
   "education-training",
 ] as const;
 
-export type JobCategorySlug = (typeof JOB_CATEGORY_SLUGS)[number];
+/** Any job category slug (categories can be added in the admin panel). */
+export type JobCategorySlug = string;
 
 export interface JobCategory {
   slug: JobCategorySlug;
@@ -18,7 +23,7 @@ export interface JobCategory {
   description: string;
 }
 
-export const jobCategories: Record<JobCategorySlug, JobCategory> = {
+const defaultJobCategories: Record<string, JobCategory> = {
   "software-it": {
     slug: "software-it",
     name: "Software & IT",
@@ -61,10 +66,27 @@ export const jobCategories: Record<JobCategorySlug, JobCategory> = {
   },
 };
 
-export const jobCategoryList: JobCategory[] = JOB_CATEGORY_SLUGS.map((slug) => jobCategories[slug]);
+const jobRegistry: Record<string, JobCategory> = { ...defaultJobCategories };
+
+export const jobCategories: Record<JobCategorySlug, JobCategory> = new Proxy(jobRegistry, {
+  get: (target, key) =>
+    typeof key === "string" && !(key in target)
+      ? { slug: key, name: key.replace(/-/g, " "), description: "" }
+      : Reflect.get(target, key),
+});
+
+export const jobCategoryList: JobCategory[] = JOB_CATEGORY_SLUGS.map((slug) => defaultJobCategories[slug]);
 
 export function isJobCategorySlug(value: string): value is JobCategorySlug {
-  return (JOB_CATEGORY_SLUGS as readonly string[]).includes(value);
+  return Object.hasOwn(jobRegistry, value);
+}
+
+/** Replaces the active job categories (called by the database loader). An empty list keeps the defaults. */
+export function replaceJobCategories(next: JobCategory[]): void {
+  if (next.length === 0) return;
+  for (const key of Object.keys(jobRegistry)) delete jobRegistry[key];
+  for (const c of next) jobRegistry[c.slug] = c;
+  jobCategoryList.splice(0, jobCategoryList.length, ...next);
 }
 
 export const EMPLOYMENT_TYPES = ["full-time", "part-time", "contract", "internship", "freelance"] as const;

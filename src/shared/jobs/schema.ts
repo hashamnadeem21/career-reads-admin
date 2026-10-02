@@ -1,6 +1,7 @@
 // Copied from blognest/src/lib/jobs/schema.ts by scripts/sync-shared.mjs. Do not edit here: change the site, then re-run `npm run sync:shared`.
 import { z } from "zod";
-import { EMPLOYMENT_TYPES, EXPERIENCE_LEVELS, JOB_CATEGORY_SLUGS, WORK_MODELS } from "./categories";
+import { SLUG_PATTERN } from "@/shared/content/schema";
+import { EMPLOYMENT_TYPES, EXPERIENCE_LEVELS, WORK_MODELS } from "./categories";
 
 const isoDate = z
   .union([z.string(), z.date()])
@@ -28,7 +29,8 @@ export const jobSchema = z
     country: z.string().trim().min(2).max(60),
     workModel: z.enum(WORK_MODELS),
     employmentType: z.enum(EMPLOYMENT_TYPES),
-    category: z.enum(JOB_CATEGORY_SLUGS),
+    /** A job category slug (checked against the category list, files or database). */
+    category: z.string().regex(SLUG_PATTERN),
     experience: z.enum(EXPERIENCE_LEVELS),
     /** Free text, e.g. "PKR 80,000 – 120,000 / month". Leave out if not disclosed. */
     salary: z.string().trim().min(2).max(80).optional(),

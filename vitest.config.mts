@@ -14,6 +14,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/unit/**/*.test.{ts,tsx}"],
+    // Database tests share one Postgres test database, so files run one at a time.
+    fileParallelism: false,
     setupFiles: ["tests/unit/setup.ts"],
   },
 });

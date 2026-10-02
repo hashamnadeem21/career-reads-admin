@@ -1,0 +1,291 @@
+/*
+ * Frosted-glass design system (docs/ADMIN_DESIGN.md).
+ * Tokens are scoped to .admin-root. Light = "Aurora", dark = "Ember".
+ */
+
+.admin-root {
+  color-scheme: light;
+
+  /* Backdrop */
+  --bd-base: #eef0fb;
+  --bd-blob-1: #c7d2fe; /* lavender */
+  --bd-blob-2: #fbcfe8; /* pink */
+  --bd-blob-3: #bbf7d0; /* mint */
+  --bd-blob-4: #bae6fd; /* sky */
+  --bd-blob-opacity: 0.85;
+
+  /* Glass */
+  --glass-shell: rgb(255 255 255 / 0.45);
+  --glass-sidebar: rgb(255 255 255 / 0.35);
+  --glass-panel: rgb(255 255 255 / 0.62);
+  --glass-strong: rgb(255 255 255 / 0.9);
+  --glass-inset: rgb(255 255 255 / 0.55);
+  --glass-hover: rgb(255 255 255 / 0.7);
+  --glass-border: rgb(255 255 255 / 0.7);
+  --glass-divider: rgb(15 23 42 / 0.08);
+  --glass-highlight: linear-gradient(180deg, rgb(255 255 255 / 0.65), rgb(255 255 255 / 0) 40%);
+  --glass-shadow: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 20px 50px -20px rgb(30 41 82 / 0.25);
+  --glass-solid-fallback: #f8fafc;
+  --glass-blur: 24px;
+  --glass-saturate: 160%;
+  --overlay: rgb(15 23 42 / 0.25);
+
+  /* Text & accents */
+  --ink: #0f172a;
+  --ink-muted: #475569;
+  --ink-faint: #64748b;
+  --primary: #2563eb;
+  --primary-ink: #ffffff;
+  --primary-soft: rgb(37 99 235 / 0.12);
+  --primary-glow: rgb(37 99 235 / 0.35);
+  --accent: #b45309; /* amber, darkened for text contrast on light glass */
+  --accent-soft: rgb(245 158 11 / 0.18);
+  --success: #15803d;
+  --success-soft: rgb(22 163 74 / 0.14);
+  --danger: #be123c;
+  --danger-soft: rgb(225 29 72 / 0.12);
+  --info-soft: rgb(37 99 235 / 0.12);
+  --chart-1: #2563eb;
+  --chart-2: #f59e0b;
+  --chart-3: #f97316;
+  --chart-4: #10b981;
+  --chart-5: #8b5cf6;
+
+  /* Shape */
+  --radius-shell: 28px;
+  --radius-panel: 20px;
+  --radius-control: 12px;
+}
+
+.admin-root.dark {
+  color-scheme: dark;
+
+  --bd-base: #0b0d12;
+  --bd-blob-1: #7c2d12; /* ember */
+  --bd-blob-2: #b45309; /* amber */
+  --bd-blob-3: #1e3a8a; /* deep blue */
+  --bd-blob-4: #3f3f46; /* smoke */
+  /* Kept dim so text on smoky panels stays AA over the brightest glow. */
+  --bd-blob-opacity: 0.45;
+
+  --glass-shell: rgb(38 38 42 / 0.45);
+  --glass-sidebar: rgb(24 24 27 / 0.35);
+  --glass-panel: rgb(63 63 70 / 0.42);
+  --glass-strong: rgb(39 39 42 / 0.92);
+  --glass-inset: rgb(24 24 27 / 0.45);
+  --glass-hover: rgb(255 255 255 / 0.06);
+  --glass-border: rgb(255 255 255 / 0.1);
+  --glass-divider: rgb(255 255 255 / 0.08);
+  --glass-highlight: linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0) 35%);
+  --glass-shadow: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 30px 60px -25px rgb(0 0 0 / 0.7);
+  --glass-solid-fallback: #27272a;
+  --overlay: rgb(0 0 0 / 0.5);
+
+  --ink: #f4f4f5;
+  --ink-muted: #a1a1aa;
+  --ink-faint: #8b8b94;
+  --primary: #3b82f6;
+  --primary-ink: #ffffff;
+  --primary-soft: rgb(59 130 246 / 0.18);
+  --primary-glow: rgb(59 130 246 / 0.45);
+  --accent: #fb923c;
+  --accent-soft: rgb(251 146 60 / 0.16);
+  --success: #4ade80;
+  --success-soft: rgb(34 197 94 / 0.16);
+  --danger: #fb7185;
+  --danger-soft: rgb(251 113 133 / 0.16);
+  --info-soft: rgb(59 130 246 / 0.18);
+  --chart-1: #3b82f6;
+  --chart-2: #fb923c;
+  --chart-3: #f97316;
+  --chart-4: #34d399;
+  --chart-5: #a78bfa;
+}
+
+.admin-root {
+  color: var(--ink);
+  background: var(--bd-base);
+  font-feature-settings: "cv11", "ss01";
+}
+
+/* Numbers never jiggle. */
+.num,
+.admin-root table,
+.admin-root time {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Layer 1: backdrop ---------- */
+
+.admin-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--bd-blob-1) 55%, transparent), transparent 60%),
+    radial-gradient(90% 70% at 100% 100%, color-mix(in srgb, var(--bd-blob-3) 45%, transparent), transparent 60%),
+    var(--bd-base);
+}
+
+.admin-blob {
+  position: absolute;
+  width: 46vmax;
+  height: 46vmax;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: var(--bd-blob-opacity);
+  will-change: transform;
+  animation: admin-drift 40s ease-in-out infinite alternate;
+}
+.admin-blob:nth-child(1) { background: var(--bd-blob-1); top: -12vmax; left: -8vmax; }
+.admin-blob:nth-child(2) { background: var(--bd-blob-2); top: 10vmax; right: -14vmax; animation-delay: -10s; animation-duration: 46s; }
+.admin-blob:nth-child(3) { background: var(--bd-blob-3); bottom: -18vmax; left: 18vmax; animation-delay: -20s; animation-duration: 52s; }
+.admin-blob:nth-child(4) { background: var(--bd-blob-4); bottom: -10vmax; right: 10vmax; width: 30vmax; height: 30vmax; animation-delay: -5s; }
+
+@keyframes admin-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(6vmax, 4vmax, 0) scale(1.08); }
+  100% { transform: translate3d(-4vmax, 6vmax, 0) scale(0.95); }
+}
+
+/* ---------- Layers 2–4: glass surfaces ---------- */
+
+.glass,
+.glass-shell,
+.glass-strong {
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+}
+
+.glass {
+  background: var(--glass-highlight), var(--glass-panel);
+  border-radius: var(--radius-panel);
+}
+
+/* Long-text surfaces (editor, dialogs): ≥ 85% opacity for readability. */
+.glass-strong {
+  background: var(--glass-highlight), var(--glass-strong);
+  border-radius: var(--radius-panel);
+}
+
+.glass-shell {
+  background: var(--glass-highlight), var(--glass-shell);
+  border-radius: var(--radius-shell);
+}
+
+/* Insets never blur: they sit inside a panel that already does. */
+.glass-inset {
+  background: var(--glass-inset);
+  border: 1px solid var(--glass-divider);
+  border-radius: calc(var(--radius-panel) - 6px);
+}
+
+/* A panel nested in the shell is the 2nd blur layer; anything inside must not add a 3rd. */
+.glass .glass,
+.glass-strong .glass {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass,
+  .glass-shell,
+  .glass-strong {
+    background: var(--glass-solid-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-shell,
+  .glass-strong {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--glass-solid-fallback);
+  }
+  .glass-inset {
+    background: color-mix(in srgb, var(--glass-solid-fallback) 92%, var(--ink));
+  }
+}
+
+/* ---------- Focus, motion, skeletons ---------- */
+
+.admin-root :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--primary-glow);
+}
+
+.glow-primary {
+  box-shadow: 0 8px 24px -8px var(--primary-glow);
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--glass-inset);
+  border-radius: var(--radius-control);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+  animation: admin-shimmer 1.4s infinite;
+}
+.dark .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
+}
+@keyframes admin-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+.rise-in {
+  animation: admin-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--stagger, 0) * 40ms);
+}
+@keyframes admin-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.lift:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-blob,
+  .skeleton::after,
+  .rise-in {
+    animation: none !important;
+  }
+  .lift:hover {
+    transform: none;
+  }
+  .admin-root *,
+  .admin-root *::before,
+  .admin-root *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Native date/time pickers follow the theme. */
+.admin-root input[type="date"],
+.admin-root input[type="datetime-local"] {
+  color-scheme: inherit;
+}
+
+/* Thin themed scrollbars inside panels. */
+.admin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-divider) transparent;
+}

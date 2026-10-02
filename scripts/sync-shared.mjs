@@ -23,6 +23,7 @@ const FILES = [
   ["src/lib/jobs/categories.ts", "src/shared/jobs/categories.ts"],
   ["src/lib/jobs/schema.ts", "src/shared/jobs/schema.ts"],
   ["src/lib/jobs/visibility.ts", "src/shared/jobs/visibility.ts"],
+  ["src/lib/settings-schema.ts", "src/shared/settings-schema.ts"],
 ];
 
 /** Site import specifiers → admin equivalents. */

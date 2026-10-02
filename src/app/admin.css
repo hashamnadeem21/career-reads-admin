@@ -45,11 +45,12 @@
   --danger: #be123c;
   --danger-soft: rgb(225 29 72 / 0.12);
   --info-soft: rgb(37 99 235 / 0.12);
-  --chart-1: #2563eb;
-  --chart-2: #f59e0b;
-  --chart-3: #f97316;
-  --chart-4: #10b981;
-  --chart-5: #8b5cf6;
+  /* Categorical order is fixed (validated for CVD with the dataviz validator). */
+  --chart-1: #2563eb; /* blue: page views */
+  --chart-2: #d97706; /* amber: apply clicks */
+  --chart-3: #059669;
+  --chart-4: #8b5cf6;
+  --chart-5: #db2777;
 
   /* Shape */
   --radius-shell: 28px;
@@ -96,10 +97,10 @@
   --danger-soft: rgb(251 113 133 / 0.16);
   --info-soft: rgb(59 130 246 / 0.18);
   --chart-1: #3b82f6;
-  --chart-2: #fb923c;
-  --chart-3: #f97316;
-  --chart-4: #34d399;
-  --chart-5: #a78bfa;
+  --chart-2: #ea580c;
+  --chart-3: #059669;
+  --chart-4: #8b5cf6;
+  --chart-5: #db2777;
 }
 
 .admin-root {
@@ -254,6 +255,14 @@
   to { opacity: 1; transform: none; }
 }
 
+.bar-grow {
+  transform-origin: left;
+  animation: admin-grow 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes admin-grow {
+  from { transform: scaleX(0); }
+}
+
 .lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -264,7 +273,8 @@
 @media (prefers-reduced-motion: reduce) {
   .admin-blob,
   .skeleton::after,
-  .rise-in {
+  .rise-in,
+  .bar-grow {
     animation: none !important;
   }
   .lift:hover {

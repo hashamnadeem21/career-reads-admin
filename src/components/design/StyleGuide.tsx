@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, FileText, Inbox, Plus, Trash2 } from "lucide-react";
+import { Bell, FileText, Inbox, Plus, Trash2, TrendingUp } from "lucide-react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/admin/Avatar";
@@ -12,7 +12,18 @@ import { ConfirmDialog, GlassDialog, GlassDrawer } from "@/components/admin/Glas
 import { GlassInset, GlassPanel, PanelHeader } from "@/components/admin/Glass";
 import { TagInput } from "@/components/admin/TagInput";
 import { Tooltip } from "@/components/admin/Tooltip";
+import { MixCard } from "@/components/dashboard/MixCard";
+import { ProgressList } from "@/components/dashboard/ProgressList";
+import { FeaturedJobCard, QuickActions } from "@/components/dashboard/Rail";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { TrafficCard } from "@/components/dashboard/TrafficCard";
 import { cn } from "@/lib/utils";
+
+/** Style-guide sample data only. Never used on real pages, which always show real counts. */
+const SAMPLE_TRAFFIC = Array.from({ length: 365 }, (_, i) => {
+  const d = new Date(Date.UTC(2026, 0, 1) + i * 86_400_000);
+  return { day: d.toISOString().slice(0, 10), views: 40 + Math.round(30 * Math.sin(i / 9) + i / 6), applies: 4 + Math.round(3 * Math.cos(i / 7)) };
+});
 
 function Swatch({ name, token }: { name: string; token: string }) {
   return (
@@ -184,6 +195,42 @@ function Specimen({ theme, extra }: { theme: "light" | "dark"; extra?: ReactNode
             </GlassInset>
           </div>
         </Section>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted">Dashboard components · sample data</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <StatCard title="Published posts" stat={{ value: 124, delta: 12, spark: [80, 86, 90, 97, 101, 104, 110, 112, 115, 118, 121, 124] }} color="var(--chart-1)" href="#" hrefLabel="View" sparkLabel="Sample trend" />
+          <StatCard title="Active jobs" stat={{ value: 38, delta: -4, spark: [44, 41, 43, 40, 42, 39, 41, 40, 38, 39, 40, 38] }} color="var(--chart-2)" href="#" hrefLabel="View" sparkLabel="Sample trend" />
+        </div>
+        <TrafficCard points={SAMPLE_TRAFFIC} total={1} />
+        <ProgressList
+          title="Top job categories"
+          unit="views"
+          emptyIcon={TrendingUp}
+          empty="No job views yet"
+          items={[
+            { key: "a", label: "Software & IT", value: 420 },
+            { key: "b", label: "Design & Creative", value: 260 },
+            { key: "c", label: "Sales & Business", value: 150 },
+          ]}
+        />
+        <MixCard
+          style="donut"
+          posts={[
+            { slug: "t", name: "Technology", value: 8 },
+            { slug: "a", name: "AI", value: 5 },
+            { slug: "p", name: "Productivity", value: 4 },
+            { slug: "l", name: "Lifestyle", value: 3 },
+            { slug: "x", name: "Travel", value: 2 },
+            { slug: "y", name: "Personal Development", value: 1 },
+          ]}
+          jobs={[]}
+        />
+        <GlassPanel>
+          <PanelHeader title="Right rail" />
+          <div className="flex flex-col gap-5">
+            <QuickActions />
+            <FeaturedJobCard job={{ slug: "#", title: "Frontend Developer", company: "Example Co", location: "Lahore, Pakistan", daysLeft: 6 }} />
+          </div>
+        </GlassPanel>
         {extra}
       </div>
     </div>

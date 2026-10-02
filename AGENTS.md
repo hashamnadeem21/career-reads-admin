@@ -7,3 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Project
+
+BlogNest admin panel: a separate Next.js 16 app that shares a Postgres database with the public site (`../blognest`). Read `docs/ADMIN_PANEL_PLAN.md` and `docs/ADMIN_DESIGN.md` before any work.

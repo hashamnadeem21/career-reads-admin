@@ -87,7 +87,7 @@ test("write a post with a hero and two placed images, publish, check the live pa
 
   await page.getByRole("tab", { name: "Publish" }).click();
   await page.getByRole("button", { name: "Publish now" }).click();
-  await expect(page.getByText("Published", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: /Notifications/ }).getByText("Published", { exact: true })).toBeVisible();
   await expect(page).toHaveURL(/\/posts\/qa-guide-to-placed-images-/);
   const slug = new URL(page.url()).pathname.split("/").pop()!;
 

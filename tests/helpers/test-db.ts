@@ -12,7 +12,7 @@ const TABLES = [
 ];
 
 /** Points the app at the test database and applies migrations. */
-export async function useTestDb(): Promise<Database> {
+export async function connectTestDb(): Promise<Database> {
   if (/neon\.tech/.test(TEST_DATABASE_URL)) throw new Error("Tests must not run against Neon.");
   process.env.DATABASE_URL = TEST_DATABASE_URL;
   const db = getDb(TEST_DATABASE_URL);

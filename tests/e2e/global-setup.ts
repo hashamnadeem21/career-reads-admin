@@ -4,7 +4,7 @@ import { config } from "dotenv";
 import { closeDb } from "@/db";
 import { articles, authors, categories, jobs } from "@/db/schema";
 import { buildImportPlan } from "@/lib/import/plan";
-import { resetTestDb, useTestDb } from "../helpers/test-db";
+import { resetTestDb, connectTestDb } from "../helpers/test-db";
 import { seedTestUsers } from "./seed";
 
 config({ path: [".env.local", ".env"], quiet: true });
@@ -16,7 +16,7 @@ async function files(dir: string, ext: RegExp) {
 
 /** Fresh test database: migrations, the site's real content, and QA users. */
 export default async function globalSetup() {
-  const db = await useTestDb();
+  const db = await connectTestDb();
   await resetTestDb(db);
   const content = path.resolve(process.env.BLOGNEST_DIR ?? "../blognest", "content");
   const plan = buildImportPlan({

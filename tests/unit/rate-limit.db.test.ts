@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { closeDb } from "@/db";
 import { clearRateLimit, limitKey, rateLimit } from "@/lib/rate-limit";
-import { resetTestDb, useTestDb } from "../helpers/test-db";
+import { resetTestDb, connectTestDb } from "../helpers/test-db";
 
-beforeAll(async () => resetTestDb(await useTestDb()));
+beforeAll(async () => resetTestDb(await connectTestDb()));
 afterAll(closeDb);
 
 describe("database rate limiter", () => {

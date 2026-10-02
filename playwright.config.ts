@@ -43,6 +43,7 @@ export default defineConfig({
         REVALIDATE_SECRET: E2E_REVALIDATE_SECRET,
         NEXT_DIST_DIR: ".next-e2e",
         ADMIN_STYLE_GUIDE: "true",
+        ALLOW_LOCAL_UPLOADS: "true",
       },
     },
   ],

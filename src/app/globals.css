@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "./admin.css";
+@import "./preview.css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

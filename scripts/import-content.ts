@@ -10,7 +10,9 @@ import path from "node:path";
 import { getTableColumns, sql } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import { closeDb, getDb } from "@/db";
-import { articles, authors, categories, jobs } from "@/db/schema";
+import { existsSync, statSync, readFileSync } from "node:fs";
+import { imageSize } from "image-size";
+import { articles, authors, categories, jobs, media } from "@/db/schema";
 import { buildImportPlan } from "@/lib/import/plan";
 
 config({ path: [".env.local", ".env"], quiet: true });
@@ -77,11 +79,34 @@ async function main() {
     }
   });
 
+  // Register every image the content already uses, so it shows in the media library.
+  const referenced = new Set<string>();
+  for (const a of plan.articles) {
+    referenced.add(a.coverImage);
+    for (const img of a.images ?? []) referenced.add(img.src);
+  }
+  for (const a of plan.authors) referenced.add(a.avatar);
+  const mediaRows = [...referenced]
+    .filter((url) => url.startsWith("/"))
+    .map((url) => {
+      const file = path.join(siteDir, "public", url);
+      if (!existsSync(file)) return null;
+      try {
+        const size = imageSize(readFileSync(file));
+        return { url, alt: "", width: size.width ?? 1600, height: size.height ?? 900, sizeBytes: statSync(file).size };
+      } catch {
+        return null;
+      }
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
+  if (mediaRows.length) await db.insert(media).values(mediaRows).onConflictDoNothing({ target: media.url });
+
   const images = plan.articles.reduce((n, a) => n + (a.images?.length ?? 0), 0);
   console.log(`Imported from ${siteDir}:`);
   console.log(`  ${plan.categories.length} categories`);
   console.log(`  ${plan.authors.length} authors`);
   console.log(`  ${plan.articles.length} articles (${images} in-post images)`);
+  console.log(`  ${mediaRows.length} existing images registered in the media library`);
   console.log(`  ${plan.jobs.length} jobs (${plan.skippedSamples} sample jobs ${includeSamples ? "included" : "skipped"})`);
 }
 

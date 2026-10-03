@@ -220,7 +220,7 @@ export function PostEditor({
   // ⌘S saves.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+      if ((e.metaKey || e.ctrlKey) && typeof e.key === "string" && e.key.toLowerCase() === "s") {
         e.preventDefault();
         void save(draftRef.current.status === "published" ? "update" : "draft");
       }

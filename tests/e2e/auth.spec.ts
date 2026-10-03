@@ -95,3 +95,15 @@ test("login is rate-limited after repeated failures", async ({ page }) => {
   await expect(page.getByText(/Too many sign-in attempts/)).toBeVisible();
   await testSql("delete from rate_limits where key like 'login-%'");
 });
+
+test("browser autofill (keydown without a key) doesn't crash the page", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await signIn(page);
+  // Chrome autofill dispatches keydown events whose `key` is undefined.
+  await page.evaluate(() => document.dispatchEvent(new Event("keydown")));
+  await page.evaluate(() => window.dispatchEvent(new Event("keydown")));
+  await page.keyboard.press("ControlOrMeta+k");
+  await expect(page.getByRole("dialog", { name: "Command palette" })).toBeVisible();
+  expect(errors).toEqual([]);
+});

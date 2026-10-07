@@ -5,18 +5,17 @@ import { ChevronsUpDown, CircleHelp, KeyRound, LogOut, Search, Zap } from "lucid
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/actions/auth";
+import { isStaff, roleLabels } from "@/lib/auth/roles";
 import type { SessionUser } from "@/lib/auth/session";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./Avatar";
 import { openCommandPalette } from "./CommandPalette";
 import { Logo } from "./Logo";
-import { bottomNav, isActive, mainNav, visibleNav, type NavEntry } from "./nav";
+import { bottomNav, isActive, mainNav, visibleNav, type NavBadges, type NavEntry } from "./nav";
 import { ThemeSwitch } from "./ThemeSwitch";
 import { Tooltip } from "./Tooltip";
 
-export interface NavBadges {
-  unreadMessages?: number;
-}
+export type { NavBadges } from "./nav";
 
 /** One nav link. `rail` = icon-only (tablet); labels show from xl up. */
 export function NavItem({ entry, active, badge, rail, onNavigate }: { entry: NavEntry; active: boolean; badge?: number; rail?: boolean; onNavigate?: () => void }) {
@@ -44,7 +43,7 @@ export function NavItem({ entry, active, badge, rail, onNavigate }: { entry: Nav
         >
           <span className="sr-only">, </span>
           {badge}
-          <span className="sr-only"> unread</span>
+          <span className="sr-only">{entry.badgeKey === "pendingJobs" ? " waiting for review" : " unread"}</span>
         </span>
       ) : null}
     </Link>
@@ -70,13 +69,17 @@ export function NavList({ user, badges, rail, onNavigate }: { user: SessionUser;
           badge={entry.badgeKey ? badges[entry.badgeKey] : undefined}
         />
       ))}
-      <p className={cn("mb-1 mt-5 px-3.5 text-[11px] font-semibold uppercase tracking-wider text-faint", rail && "sr-only xl:not-sr-only")}>Apps</p>
-      <NavItem
-        entry={{ href: "/posts/new", label: "Quick post", icon: Zap }}
-        rail={rail}
-        onNavigate={onNavigate}
-        active={pathname === "/posts/new"}
-      />
+      {isStaff(user.role) && (
+        <>
+          <p className={cn("mb-1 mt-5 px-3.5 text-[11px] font-semibold uppercase tracking-wider text-faint", rail && "sr-only xl:not-sr-only")}>Apps</p>
+          <NavItem
+            entry={{ href: "/posts/new", label: "Quick post", icon: Zap }}
+            rail={rail}
+            onNavigate={onNavigate}
+            active={pathname === "/posts/new"}
+          />
+        </>
+      )}
     </nav>
   );
 }
@@ -96,7 +99,7 @@ export function UserCard({ user, rail }: { user: SessionUser; rail?: boolean }) 
           <Avatar name={user.name} size={36} />
           <span className={cn("min-w-0 flex-1", rail && "hidden xl:block")}>
             <span className="block truncate text-sm font-semibold">{user.name}</span>
-            <span className="block truncate text-xs capitalize text-muted">{user.role}</span>
+            <span className="block truncate text-xs text-muted">{user.companyName ?? roleLabels[user.role]}</span>
           </span>
           <ChevronsUpDown className={cn("h-4 w-4 text-muted", rail && "hidden xl:block")} aria-hidden />
         </button>
@@ -106,6 +109,10 @@ export function UserCard({ user, rail }: { user: SessionUser; rail?: boolean }) 
           <div className="px-3 py-2">
             <p className="text-sm font-semibold">{user.name}</p>
             <p className="truncate text-xs text-muted">{user.email}</p>
+            <p className="mt-0.5 truncate text-xs text-muted">
+              {roleLabels[user.role]}
+              {user.companyName ? ` · ${user.companyName}` : ""}
+            </p>
           </div>
           <DropdownMenu.Separator className="my-1 h-px bg-divider" />
           <DropdownMenu.Item asChild className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm outline-none data-[highlighted]:bg-hover">
@@ -148,9 +155,9 @@ export function Sidebar({ user, badges }: { user: SessionUser; badges: NavBadges
   const pathname = usePathname();
   return (
     <aside className="hidden w-[76px] shrink-0 flex-col gap-5 self-start border-r border-divider bg-[var(--glass-sidebar)] px-3 py-5 md:sticky md:top-4 md:flex md:h-[calc(100dvh-2rem)] xl:top-5 xl:h-[calc(100dvh-2.5rem)] xl:w-[264px] xl:px-4">
-      <Link href="/" className="flex justify-center rounded-xl xl:justify-start xl:px-1.5" aria-label="BlogNest Admin dashboard">
+      <Link href="/" className="flex justify-center rounded-xl xl:justify-start xl:px-1.5" aria-label="Dashboard">
         <Logo className="xl:hidden" compact />
-        <Logo className="hidden xl:flex" />
+        <Logo className="hidden xl:flex" label={user.role === "company" ? "Employers" : "Admin"} />
       </Link>
       <SearchField rail />
       <div className="admin-scroll -mx-1 flex-1 overflow-y-auto px-1">
@@ -160,7 +167,7 @@ export function Sidebar({ user, badges }: { user: SessionUser; badges: NavBadges
         {visibleNav(bottomNav, user.role).map((entry) => (
           <NavItem key={entry.href} entry={entry} rail active={isActive(pathname, entry.href)} />
         ))}
-        <NavItem entry={{ href: "/help", label: "Help", icon: CircleHelp }} rail active={pathname === "/help"} />
+        {isStaff(user.role) && <NavItem entry={{ href: "/help", label: "Help", icon: CircleHelp }} rail active={pathname === "/help"} />}
         <div className="hidden px-3.5 py-2 xl:block">
           <ThemeSwitch />
         </div>

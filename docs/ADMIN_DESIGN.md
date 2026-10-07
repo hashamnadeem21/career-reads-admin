@@ -1,6 +1,6 @@
 # Admin panel design: "Frosted glass"
 
-The design spec for the BlogNest admin panel (this repo, `blognest-admin`). It's inspired by two references:
+The design spec for the Career Reads admin panel (this repo, `blognest-admin`). It's inspired by two references:
 
 - **Light mode ("Aurora")**: frosted white panels floating over a soft pastel gradient (lavender → pink → mint), crisp blue primary buttons, airy spacing, and big confident numbers.
 - **Dark mode ("Ember")**: smoky translucent panels over a deep, dimly lit backdrop with warm amber glows, darker inset strips for key stats, and glowing chart lines.
@@ -147,7 +147,7 @@ Defined once in `src/app/admin.css` and scoped to `.admin-root`. Tailwind maps t
 
 ```
 ┌──────────────┬──────────────────────────────────────────────────────────────┐
-│ ◆ BlogNest   │  Hi, Hasham 👋                 [🔍] [🔔•] [⚙ Customize] [+ New ▾]│
+│ ◆ Career Reads   │  Hi, Hasham 👋                 [🔍] [🔔•] [⚙ Customize] [+ New ▾]│
 │ [Search… ⌘K] │  Here's what's happening today                                  │
 │              │ ┌───────────────┐┌───────────────┐┌───────────────┐┌──────────┐ │
 │ ▣ Dashboard  │ │ Published     ││ Active jobs   ││ Subscribers   ││ Unread   │ │

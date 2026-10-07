@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { GlassInset, GlassPanel, PageHeader, PanelHeader } from "@/components/admin/Glass";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 
 export const metadata: Metadata = { title: "Help" };
 
@@ -19,7 +19,7 @@ const faqs = [
 ];
 
 export default async function HelpPage() {
-  await requireUser();
+  await requireStaff();
   return (
     <>
       <PageHeader title="Help" description="Shortcuts and answers to common questions." />

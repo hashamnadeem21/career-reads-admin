@@ -13,10 +13,12 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const { requireUser, isAdmin } = await import("@/lib/auth/require-user");
+const { requireUser, requireStaff, requireSuperAdmin, isStaff, isSuperAdmin } = await import("@/lib/auth/require-user");
 
-const editor: SessionUser = { id: "1", name: "Eddie", email: "e@x.test", role: "editor", mustChangePassword: false };
-const admin: SessionUser = { ...editor, id: "2", role: "admin" };
+const base = { mustChangePassword: false, companyId: null, companyName: null, companyAutoPublish: false };
+const editor: SessionUser = { ...base, id: "1", name: "Eddie", email: "e@x.test", role: "editor" };
+const owner: SessionUser = { ...base, id: "2", name: "Hasham", email: "h@x.test", role: "super_admin" };
+const company: SessionUser = { ...base, id: "3", name: "Ada", email: "a@x.test", role: "company", companyId: "c1", companyName: "Acme" };
 
 describe("requireUser", () => {
   beforeEach(() => getCurrentUser.mockReset());
@@ -24,22 +26,33 @@ describe("requireUser", () => {
   it("redirects to /login when nobody is signed in", async () => {
     getCurrentUser.mockResolvedValue(null);
     await expect(requireUser()).rejects.toThrow("REDIRECT:/login");
+    await expect(requireStaff()).rejects.toThrow("REDIRECT:/login");
   });
 
   it("returns any signed-in user when no role is required", async () => {
-    getCurrentUser.mockResolvedValue(editor);
-    await expect(requireUser()).resolves.toBe(editor);
+    for (const u of [editor, owner, company]) {
+      getCurrentUser.mockResolvedValue(u);
+      await expect(requireUser()).resolves.toBe(u);
+    }
   });
 
-  it("blocks editors from admin-only pages with a 403", async () => {
-    getCurrentUser.mockResolvedValue(editor);
-    await expect(requireUser("admin")).rejects.toThrow("FORBIDDEN");
+  it("keeps company accounts out of staff pages with a 403", async () => {
+    getCurrentUser.mockResolvedValue(company);
+    await expect(requireStaff()).rejects.toThrow("FORBIDDEN");
+    await expect(requireSuperAdmin()).rejects.toThrow("FORBIDDEN");
   });
 
-  it("lets admins through admin-only pages", async () => {
-    getCurrentUser.mockResolvedValue(admin);
-    await expect(requireUser("admin")).resolves.toBe(admin);
-    expect(isAdmin(admin)).toBe(true);
-    expect(isAdmin(editor)).toBe(false);
+  it("lets editors into staff pages but not super-admin pages", async () => {
+    getCurrentUser.mockResolvedValue(editor);
+    await expect(requireStaff()).resolves.toBe(editor);
+    await expect(requireSuperAdmin()).rejects.toThrow("FORBIDDEN");
+  });
+
+  it("lets super admins in everywhere", async () => {
+    getCurrentUser.mockResolvedValue(owner);
+    await expect(requireStaff()).resolves.toBe(owner);
+    await expect(requireSuperAdmin()).resolves.toBe(owner);
+    expect(isSuperAdmin(owner.role)).toBe(true);
+    expect(isStaff(company.role)).toBe(false);
   });
 });

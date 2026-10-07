@@ -118,7 +118,7 @@ export function Inbox({ messages: initial }: { messages: InboxMessage[] }) {
             <p className="mt-5 whitespace-pre-wrap text-[15px] leading-relaxed">{selected.message}</p>
             <div className="mt-auto pt-6">
               <Button asChild variant="primary">
-                <a href={`mailto:${selected.email}?subject=${encodeURIComponent(`Re: your message to BlogNest${selected.topic ? ` (${selected.topic})` : ""}`)}`}>
+                <a href={`mailto:${selected.email}?subject=${encodeURIComponent(`Re: your message to Career Reads${selected.topic ? ` (${selected.topic})` : ""}`)}`}>
                   <Reply /> Reply by email
                 </a>
               </Button>

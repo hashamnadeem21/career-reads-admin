@@ -3,17 +3,20 @@ import { expect, test } from "@playwright/test";
 import { signIn } from "./helpers";
 
 /** Design QA checklist (docs/ADMIN_DESIGN.md §9), automated where possible. */
-const PAGES = ["/", "/posts", "/posts/new", "/posts/how-passkeys-work", "/jobs", "/jobs/new", "/media", "/categories", "/authors", "/messages", "/messages?tab=subscribers", "/settings", "/users", "/activity", "/help", "/account/password"];
+const PAGES = ["/", "/posts", "/posts/new", "/posts/how-passkeys-work", "/jobs", "/jobs/new", "/media", "/categories", "/authors", "/messages", "/messages?tab=subscribers", "/settings", "/users", "/companies", "/activity", "/help", "/account/password"];
+/** What a company account sees. */
+const COMPANY_PAGES = ["/", "/jobs", "/jobs/new", "/account/password"];
 
+for (const [who, pages] of [["admin", PAGES], ["globex", COMPANY_PAGES]] as const)
 for (const theme of ["light", "dark"] as const) {
-  test(`no serious accessibility problems on any page (${theme})`, async ({ page }) => {
+  test(`no serious accessibility problems on any page (${who}, ${theme})`, async ({ page }) => {
     test.setTimeout(120_000);
     await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-    await signIn(page);
+    await signIn(page, who);
     // Pin the theme explicitly so the cookie matches the emulated scheme.
     await page.context().addCookies([{ name: "bn_admin_theme", value: theme, url: page.url() }]);
     const failures: string[] = [];
-    for (const path of PAGES) {
+    for (const path of pages) {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
       const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();

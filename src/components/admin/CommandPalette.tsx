@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { searchEverything, type SearchHit } from "@/app/actions/search";
 import type { Role } from "@/db/schema";
+import { isStaff } from "@/lib/auth/roles";
 import { mainNav, bottomNav, visibleNav } from "./nav";
 import { applyTheme } from "./ThemeSwitch";
 import { saveTheme } from "@/app/actions/preferences";
@@ -60,6 +61,7 @@ export function CommandPalette({ role }: { role: Role }) {
   };
 
   const pages = [...visibleNav(mainNav, role), ...visibleNav(bottomNav, role)];
+  const staff = isStaff(role);
   const visibleHits = query.trim().length >= 2 ? hits : [];
 
   return (
@@ -75,7 +77,7 @@ export function CommandPalette({ role }: { role: Role }) {
               <Command.Input
                 value={query}
                 onValueChange={setQuery}
-                placeholder="Search posts, jobs and pages…"
+                placeholder={staff ? "Search posts, jobs and pages…" : "Search your jobs and pages…"}
                 className="h-14 flex-1 bg-transparent text-[15px] outline-none placeholder:text-faint focus-visible:shadow-none focus-visible:outline-none"
               />
               <kbd className="rounded-md border border-divider px-1.5 py-0.5 text-[11px] text-faint">Esc</kbd>
@@ -94,15 +96,19 @@ export function CommandPalette({ role }: { role: Role }) {
                 </Command.Group>
               )}
               <Command.Group heading="Actions" className={groupClass}>
-                <Command.Item onSelect={() => go("/posts/new")} className={itemClass}>
-                  <Plus /> New post
-                </Command.Item>
+                {staff && (
+                  <Command.Item onSelect={() => go("/posts/new")} className={itemClass}>
+                    <Plus /> New post
+                  </Command.Item>
+                )}
                 <Command.Item onSelect={() => go("/jobs/new")} className={itemClass}>
                   <Plus /> New job
                 </Command.Item>
-                <Command.Item onSelect={() => go("/media?upload=1")} className={itemClass}>
-                  <Upload /> Upload image
-                </Command.Item>
+                {staff && (
+                  <Command.Item onSelect={() => go("/media?upload=1")} className={itemClass}>
+                    <Upload /> Upload image
+                  </Command.Item>
+                )}
                 <Command.Item
                   onSelect={() => {
                     const next = document.documentElement.classList.contains("dark") ? "light" : "dark";

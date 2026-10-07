@@ -1,7 +1,7 @@
 import { asc } from "drizzle-orm";
 import { getDb } from "@/db";
 import { subscribers } from "@/db/schema";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 
 /** Neutralises spreadsheet formulas (CSV injection) and quotes every field. */
 function csvField(value: string): string {
@@ -11,7 +11,7 @@ function csvField(value: string): string {
 
 /** GET /api/export/subscribers → CSV download (signed-in users only). */
 export async function GET() {
-  await requireUser();
+  await requireStaff();
   const rows = await getDb().select().from(subscribers).orderBy(asc(subscribers.createdAt));
   const lines = [
     ["email", "confirmed", "subscribed_at"].join(","),

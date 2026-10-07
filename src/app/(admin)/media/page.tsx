@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/admin/Glass";
 import { MediaLibrary } from "@/components/media/MediaLibrary";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 import { listMedia } from "@/lib/media/queries";
 
 export const metadata: Metadata = { title: "Media" };
 
 export default async function MediaPage({ searchParams }: PageProps<"/media">) {
-  await requireUser();
+  await requireStaff();
   const [{ items, total }, sp] = await Promise.all([listMedia({}), searchParams]);
   return (
     <>

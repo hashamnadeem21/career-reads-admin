@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/admin/Glass";
 import { PostEditor } from "@/components/posts/PostEditor";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 import { env } from "@/lib/env";
 import { getEditorOptions, getPost } from "@/lib/posts/queries";
 
@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps<"/posts/[slug]">): 
 }
 
 export default async function EditPostPage({ params }: PageProps<"/posts/[slug]">) {
-  await requireUser();
+  await requireStaff();
   const post = await getPost((await params).slug);
   if (!post) notFound();
   const { categories, authors } = await getEditorOptions();

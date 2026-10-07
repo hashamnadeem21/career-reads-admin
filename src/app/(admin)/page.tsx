@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { CalendarClock, FilePen, Hourglass, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/admin/Glass";
+import { CompanyDashboard } from "@/components/companies/CompanyDashboard";
 import { Notice } from "@/components/admin/Notice";
 import { DashboardGrid } from "@/components/dashboard/DashboardGrid";
 import { ProgressList } from "@/components/dashboard/ProgressList";
@@ -25,8 +26,12 @@ import {
 } from "@/lib/dashboard/queries";
 import { siteUrl } from "@/lib/site-url";
 
+/** Staff get the full dashboard; company accounts get their own jobs overview. */
 export default async function DashboardPage() {
   const user = await requireUser();
+  if (user.role === "company" && user.companyId) {
+    return <CompanyDashboard companyId={user.companyId} companyName={user.companyName ?? "Your company"} />;
+  }
   const [stats, traffic, topCategories, mix, recent, lists, featured, activity, [prefs]] = await Promise.all([
     getStatCards(),
     getTraffic(),

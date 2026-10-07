@@ -8,7 +8,7 @@ import { ArticleBody } from "@/components/preview/ArticleBody";
 import { getDb } from "@/db";
 import { articles, authors, categories, dailyStats } from "@/db/schema";
 import { logAudit } from "@/lib/audit";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 import { checkDraft, postDraftSchema, resolvePublishing, type PostDraft, type PostIntent } from "@/lib/posts/draft";
 import { checkMdxBody } from "@/lib/posts/mdx-check";
 import { revalidateSite } from "@/lib/revalidate-site";
@@ -50,7 +50,7 @@ async function refreshSite(post: { slug: string; category: string; author: strin
 const intentSchema = z.enum(["draft", "publish", "schedule", "update", "unpublish", "autosave"]);
 
 export async function savePost(input: PostDraft, intentInput: PostIntent, scheduleAt?: string): Promise<SavePostResult> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const draft = postDraftSchema.parse(input);
   const intent = intentSchema.parse(intentInput);
   const db = getDb();
@@ -173,7 +173,7 @@ const previewImages = z
 
 /** Renders the post body through the same MDX pipeline the site uses. */
 export async function renderPostPreview(body: string, images: unknown, ads: boolean): Promise<ReactNode> {
-  await requireUser();
+  await requireStaff();
   const source = z.string().max(200_000).parse(body);
   const parsedImages = previewImages.safeParse(images);
   const safeImages = parsedImages.success ? parsedImages.data.map((i) => ({ ...i, caption: i.caption || undefined })) : [];
@@ -183,7 +183,7 @@ export async function renderPostPreview(body: string, images: unknown, ads: bool
 const slugSchema = z.string().regex(SLUG_PATTERN).max(100);
 
 export async function deletePost(slug: string): Promise<{ ok: boolean; message: string }> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const [post] = await getDb().select().from(articles).where(eq(articles.slug, slugSchema.parse(slug))).limit(1);
   if (!post) return { ok: false, message: "Already deleted." };
   await getDb().transaction(async (tx) => {
@@ -196,7 +196,7 @@ export async function deletePost(slug: string): Promise<{ ok: boolean; message: 
 }
 
 export async function duplicatePost(slug: string): Promise<{ ok: boolean; slug?: string; message: string }> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const db = getDb();
   const [post] = await db.select().from(articles).where(eq(articles.slug, slugSchema.parse(slug))).limit(1);
   if (!post) return { ok: false, message: "Post not found." };
@@ -224,7 +224,7 @@ export async function duplicatePost(slug: string): Promise<{ ok: boolean; slug?:
 const bulkSchema = z.object({ action: z.enum(["publish", "unpublish", "delete"]), slugs: z.array(slugSchema).min(1).max(100) });
 
 export async function bulkPosts(input: { action: string; slugs: string[] }): Promise<{ ok: boolean; message: string }> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const { action, slugs } = bulkSchema.parse(input);
   const db = getDb();
   const rows = await db.select().from(articles).where(inArray(articles.slug, slugs));

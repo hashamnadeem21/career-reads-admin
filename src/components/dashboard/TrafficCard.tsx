@@ -11,7 +11,19 @@ import { TrafficChart } from "./charts";
 import { RANGES, toBuckets, toCsv, type Range } from "./charts/buckets";
 
 /** "Traffic & engagement": range tabs, CSV export, chart, legend and a table view for screen readers. */
-export function TrafficCard({ points, total }: { points: TrafficPoint[]; total: number }) {
+export function TrafficCard({
+  points,
+  total,
+  title = "Traffic & engagement",
+  description = "Article and job page views, and Apply button clicks",
+  fileName = "blognest-traffic",
+}: {
+  points: TrafficPoint[];
+  total: number;
+  title?: string;
+  description?: string;
+  fileName?: string;
+}) {
   const [range, setRange] = useState<Range>("30D");
   const buckets = useMemo(() => toBuckets(points, range), [points, range]);
   const totals = buckets.reduce((t, b) => ({ views: t.views + b.views, applies: t.applies + b.applies }), { views: 0, applies: 0 });
@@ -19,7 +31,7 @@ export function TrafficCard({ points, total }: { points: TrafficPoint[]; total: 
   const exportCsv = () => {
     const blob = new Blob([toCsv(buckets)], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement("a"), { href: url, download: `blognest-traffic-${range.toLowerCase()}.csv` });
+    const a = Object.assign(document.createElement("a"), { href: url, download: `${fileName}-${range.toLowerCase()}.csv` });
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -28,8 +40,8 @@ export function TrafficCard({ points, total }: { points: TrafficPoint[]; total: 
     <section className="glass rise-in h-full p-5" aria-labelledby="traffic-title">
       <PanelHeader
         id="traffic-title"
-        title="Traffic & engagement"
-        description="Article and job page views, and Apply button clicks"
+        title={title}
+        description={description}
         actions={
           <>
             <div role="radiogroup" aria-label="Date range" className="glass-inset flex p-1">

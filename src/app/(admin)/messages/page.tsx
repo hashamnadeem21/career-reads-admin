@@ -6,13 +6,13 @@ import { Inbox } from "@/components/messages/Inbox";
 import { SubscribersTable } from "@/components/messages/SubscribersTable";
 import { getDb } from "@/db";
 import { messages, subscribers } from "@/db/schema";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Messages" };
 
 export default async function MessagesPage({ searchParams }: PageProps<"/messages">) {
-  await requireUser();
+  await requireStaff();
   const tab = (await searchParams).tab === "subscribers" ? "subscribers" : "messages";
   const db = getDb();
   const [[{ unread }], [{ subs }]] = await Promise.all([

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
 import { settings } from "@/db/schema";
 import { logAudit } from "@/lib/audit";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireSuperAdmin } from "@/lib/auth/require-user";
 import { revalidateSite } from "@/lib/revalidate-site";
 import { adsSettingsSchema, siteSettingsSchema } from "@/shared/settings-schema";
 
@@ -16,7 +16,7 @@ export interface SettingsResult {
 
 /** Admins only. Saves ads + site settings, then refreshes every page on the site. */
 export async function saveSettings(input: { ads: unknown; site: unknown }): Promise<SettingsResult> {
-  const user = await requireUser("admin");
+  const user = await requireSuperAdmin();
   const ads = adsSettingsSchema.safeParse(input.ads);
   const site = siteSettingsSchema.safeParse(input.site);
   if (!ads.success || !site.success) {

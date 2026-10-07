@@ -1,6 +1,6 @@
 # Admin panel plan
 
-This plan lets you post blogs, jobs, and everything else on BlogNest from a web dashboard instead of editing files in the code.
+This plan lets you post blogs, jobs, and everything else on Career Reads from a web dashboard instead of editing files in the code.
 
 The admin panel is its **own Next.js app in its own repo** (`blognest-admin`, this repo), separate from the public site (`blognest`). Both apps talk to the **same PostgreSQL database**.
 

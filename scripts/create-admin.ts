@@ -1,5 +1,5 @@
 /**
- * Creates the first admin (or resets an existing user's password) and prints a temporary password.
+ * Creates the first super admin (or resets an existing user's password) and prints a temporary password.
  *
  *   npm run admin:create -- email@example.com "Full Name"
  *   npm run admin:create -- email@example.com "Full Name" --reset
@@ -35,13 +35,13 @@ async function main() {
     return;
   }
   if (existing) {
-    await db.update(users).set({ passwordHash, mustChangePassword: true, role: "admin" }).where(eq(users.id, existing.id));
+    await db.update(users).set({ passwordHash, mustChangePassword: true, role: "super_admin", companyId: null }).where(eq(users.id, existing.id));
     await db.delete(sessions).where(eq(sessions.userId, existing.id));
   } else {
-    await db.insert(users).values({ email: email.data, name: name.data, passwordHash, role: "admin", mustChangePassword: true });
+    await db.insert(users).values({ email: email.data, name: name.data, passwordHash, role: "super_admin", mustChangePassword: true });
   }
 
-  console.log(`\n${existing ? "Reset" : "Created"} admin ${name.data} <${email.data}>`);
+  console.log(`\n${existing ? "Reset" : "Created"} super admin ${name.data} <${email.data}>`);
   console.log(`Temporary password: ${password}`);
   console.log("You'll be asked to choose a new password after signing in.\n");
 }

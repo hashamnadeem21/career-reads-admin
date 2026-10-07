@@ -4,12 +4,12 @@ import { GlassPanel, PageHeader } from "@/components/admin/Glass";
 import { CategoriesManager, type CategoryItem } from "@/components/categories/CategoriesManager";
 import { getDb } from "@/db";
 import { articles, categories, jobs } from "@/db/schema";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 
 export const metadata: Metadata = { title: "Categories" };
 
 export default async function CategoriesPage() {
-  await requireUser();
+  await requireStaff();
   const db = getDb();
   const [rows, postCounts, jobCounts] = await Promise.all([
     db.select().from(categories).orderBy(asc(categories.sortOrder), asc(categories.name)),

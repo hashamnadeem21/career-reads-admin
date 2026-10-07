@@ -27,11 +27,11 @@ test("the invite creates an editor who can't see or open Settings and Users", as
   await page.goto(new URL(inviteLink).pathname);
   await expect(page.getByRole("heading", { name: "You're invited" })).toBeVisible();
   await page.getByLabel("Choose a password").fill("short");
-  await page.getByRole("button", { name: "Join BlogNest Admin" }).click();
+  await page.getByRole("button", { name: "Join Career Reads Admin" }).click();
   await expect(page.getByText("Use at least 12 characters")).toBeVisible();
   await page.getByLabel("Choose a password").fill("a-strong-pass-123");
   await page.getByLabel("Confirm password").fill("a-strong-pass-123");
-  await page.getByRole("button", { name: "Join BlogNest Admin" }).click();
+  await page.getByRole("button", { name: "Join Career Reads Admin" }).click();
   await expect(page.getByText(`Hi, Nadia`)).toBeVisible();
 
   await expect(page.getByRole("link", { name: "Settings" })).toHaveCount(0);
@@ -47,17 +47,17 @@ test("the invite creates an editor who can't see or open Settings and Users", as
   await context.close();
 });
 
-test("role changes take effect immediately, and the last admin is protected", async ({ page }) => {
+test("role changes take effect immediately, and the last super admin is protected", async ({ page }) => {
   await signIn(page);
   await page.goto("/users");
   const card = page.getByRole("listitem").filter({ hasText: NAME });
-  await card.getByLabel(`Role for ${NAME}`).selectOption("admin");
-  await expect(page.getByText(`${NAME} is now an admin.`)).toBeVisible();
+  await card.getByLabel(`Role for ${NAME}`).selectOption("super_admin");
+  await expect(page.getByText(`${NAME} is now a super admin.`)).toBeVisible();
   await card.getByLabel(`Role for ${NAME}`).selectOption("editor");
   await expect(page.getByText(`${NAME} is now an editor.`)).toBeVisible();
 
-  // With a single admin, their role and removal controls are locked.
-  const admins = (await testSql("select count(*)::int as n from users where role = 'admin'")).rows[0].n;
+  // With a single super admin, their role and removal controls are locked.
+  const admins = (await testSql("select count(*)::int as n from users where role = 'super_admin'")).rows[0].n;
   if (admins === 1) {
     const me = page.getByRole("listitem").filter({ hasText: "(you)" });
     await expect(me.getByRole("combobox")).toBeDisabled();

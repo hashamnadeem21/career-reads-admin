@@ -21,12 +21,26 @@ export function Badge({ tone = "neutral", children, className, dot }: { tone?: T
   );
 }
 
-export type ContentState = "live" | "draft" | "scheduled" | "expired";
+export type ContentState = "live" | "draft" | "scheduled" | "expired" | "review" | "rejected";
 
-const stateTone: Record<ContentState, Tone> = { live: "success", draft: "warning", scheduled: "info", expired: "danger" };
-const stateLabel: Record<ContentState, string> = { live: "Live", draft: "Draft", scheduled: "Scheduled", expired: "Expired" };
+const stateTone: Record<ContentState, Tone> = {
+  live: "success",
+  draft: "warning",
+  scheduled: "info",
+  expired: "danger",
+  review: "info",
+  rejected: "danger",
+};
+const stateLabel: Record<ContentState, string> = {
+  live: "Live",
+  draft: "Draft",
+  scheduled: "Scheduled",
+  expired: "Expired",
+  review: "In review",
+  rejected: "Needs changes",
+};
 
-/** Status pill: Live = green, Draft = amber, Scheduled = blue, Expired = rose. */
+/** Status pill: Live = green, Draft = amber, Scheduled / In review = blue, Expired / Needs changes = rose. */
 export function StatusPill({ state, className }: { state: ContentState; className?: string }) {
   return (
     <Badge tone={stateTone[state]} dot className={className}>

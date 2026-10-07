@@ -41,7 +41,7 @@ test("editors can't open Settings and don't see it in the menu", async ({ page }
   await expect(page.getByRole("link", { name: "Settings" })).toHaveCount(0);
   const res = await page.goto("/settings");
   expect(res?.status()).toBe(403);
-  await expect(page.getByText("Admins only")).toBeVisible();
+  await expect(page.getByText("You don't have access to this page")).toBeVisible();
 });
 
 test("a message sent from the site's contact form lands in the inbox", async ({ page, browser }) => {
@@ -110,7 +110,7 @@ test("categories: add a job category, it can be deleted while unused; used ones 
 test("authors: edit a bio and see the validation from the site's schema", async ({ page }) => {
   await signIn(page);
   await page.goto("/authors");
-  await page.getByRole("button", { name: /Edit BlogNest Editorial Team/ }).click();
+  await page.getByRole("button", { name: /Edit Career Reads Editorial Team/ }).click();
   await page.getByLabel("Bio").fill("Too short");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByRole("dialog").getByText(/at least|>=|40/i).first()).toBeVisible();

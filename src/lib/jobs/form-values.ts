@@ -21,6 +21,8 @@ export interface JobFormValues {
   deadline: string;
   status: "draft" | "published";
   featured: boolean;
+  /** Staff only: the company account that owns the job ("" = Career Reads). */
+  companyId: string;
 }
 
 export const emptyJob = (): JobFormValues => ({
@@ -45,4 +47,5 @@ export const emptyJob = (): JobFormValues => ({
   deadline: "",
   status: "draft",
   featured: false,
+  companyId: "",
 });

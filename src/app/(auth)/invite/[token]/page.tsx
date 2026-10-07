@@ -5,7 +5,8 @@ import { AcceptInviteForm } from "@/components/auth/AcceptInviteForm";
 import { Badge } from "@/components/admin/Badge";
 import { Logo } from "@/components/admin/Logo";
 import { getDb } from "@/db";
-import { invites } from "@/db/schema";
+import { companies, invites } from "@/db/schema";
+import { roleLabels } from "@/lib/auth/roles";
 import { hashToken } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Accept invite" };
@@ -15,8 +16,9 @@ export default async function InvitePage({ params }: PageProps<"/invite/[token]"
   const [invite] =
     token.length >= 20 && token.length <= 100
       ? await getDb()
-          .select()
+          .select({ email: invites.email, name: invites.name, role: invites.role, companyName: companies.name })
           .from(invites)
+          .leftJoin(companies, eq(companies.id, invites.companyId))
           .where(and(eq(invites.tokenHash, hashToken(token)), gt(invites.expiresAt, new Date())))
           .limit(1)
       : [];
@@ -28,7 +30,15 @@ export default async function InvitePage({ params }: PageProps<"/invite/[token]"
           <>
             <h1 className="mt-7 text-2xl font-bold tracking-tight">You&apos;re invited</h1>
             <p className="mb-6 mt-1 text-sm text-muted">
-              Join as <Badge tone={invite.role === "admin" ? "info" : "warning"} className="capitalize">{invite.role}</Badge> with {invite.email}.
+              {invite.companyName ? (
+                <>
+                  Join <strong className="text-ink">{invite.companyName}</strong> on Career Reads to post and manage your jobs, as {invite.email}.
+                </>
+              ) : (
+                <>
+                  Join as <Badge tone={invite.role === "super_admin" ? "info" : "warning"}>{roleLabels[invite.role]}</Badge> with {invite.email}.
+                </>
+              )}
             </p>
             <AcceptInviteForm token={token} name={invite.name} />
           </>

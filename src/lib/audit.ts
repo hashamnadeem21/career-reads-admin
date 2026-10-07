@@ -3,7 +3,7 @@ import { getDb } from "@/db";
 import { auditLog } from "@/db/schema";
 import type { SessionUser } from "@/lib/auth/session";
 
-export type AuditEntity = "job" | "post" | "category" | "author" | "media" | "settings" | "user" | "message" | "subscriber";
+export type AuditEntity = "job" | "post" | "category" | "author" | "media" | "settings" | "user" | "message" | "subscriber" | "company";
 
 /** Records who changed what ("Hasham published Frontend Developer"). Never throws into the caller. */
 export async function logAudit(user: Pick<SessionUser, "id">, action: string, entity: AuditEntity, entitySlug?: string | null, label?: string | null) {

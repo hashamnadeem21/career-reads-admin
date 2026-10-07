@@ -6,14 +6,24 @@ import { Sidebar } from "@/components/admin/Sidebar";
 import { Topbar } from "@/components/admin/Topbar";
 import { getDb } from "@/db";
 import { messages } from "@/db/schema";
+import type { NavBadges } from "@/components/admin/nav";
 import { requireUser } from "@/lib/auth/require-user";
+import { isStaff } from "@/lib/auth/roles";
+import { pendingReviewCount } from "@/lib/jobs/queries";
 
-/** The floating glass shell: sidebar + content. Every page inside still calls requireUser itself. */
+/** The floating glass shell: sidebar + content. Every page inside still checks access itself. */
 export default async function AdminLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   if (user.mustChangePassword) redirect("/account/password");
-  const [{ unread }] = await getDb().select({ unread: count() }).from(messages).where(eq(messages.read, false));
-  const badges = { unreadMessages: unread };
+  // Staff-only counters; company accounts never query (or see) the inbox.
+  const badges: NavBadges = {};
+  if (isStaff(user.role)) {
+    const [[{ unread }], pendingJobs] = await Promise.all([
+      getDb().select({ unread: count() }).from(messages).where(eq(messages.read, false)),
+      pendingReviewCount(),
+    ]);
+    Object.assign(badges, { unreadMessages: unread, pendingJobs });
+  }
 
   return (
     <div className="min-h-dvh md:p-4 xl:p-5">

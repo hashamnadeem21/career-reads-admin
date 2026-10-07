@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getDb } from "@/db";
 import { articles, categories, jobs } from "@/db/schema";
 import { logAudit } from "@/lib/audit";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 import { categoryInputSchema, type CategoryInput } from "@/lib/categories/schema";
 import { revalidateSite } from "@/lib/revalidate-site";
 
@@ -26,7 +26,7 @@ async function refreshSite(kind: "blog" | "job", ...slugs: string[]) {
 }
 
 export async function saveCategory(input: CategoryInput): Promise<CategoryResult> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const parsed = categoryInputSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -65,7 +65,7 @@ export async function saveCategory(input: CategoryInput): Promise<CategoryResult
 }
 
 export async function reorderCategories(kind: "blog" | "job", slugs: string[]): Promise<CategoryResult> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const order = z.array(z.string().max(80)).max(200).parse(slugs);
   const db = getDb();
   const rows = await db.select({ slug: categories.slug }).from(categories).where(eq(categories.kind, z.enum(["blog", "job"]).parse(kind))).orderBy(asc(categories.sortOrder));
@@ -81,7 +81,7 @@ export async function reorderCategories(kind: "blog" | "job", slugs: string[]): 
 
 /** Deleting is blocked while any post or job uses the category. */
 export async function deleteCategory(slug: string): Promise<CategoryResult> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const db = getDb();
   const [cat] = await db.select().from(categories).where(eq(categories.slug, z.string().max(80).parse(slug))).limit(1);
   if (!cat) return { ok: false, message: "Already deleted." };

@@ -10,6 +10,7 @@ import { ListInput } from "@/components/admin/ListInput";
 import { initialFormState } from "@/lib/form-state";
 import { jobSlugFrom } from "@/lib/jobs/form";
 import type { JobFormValues } from "@/lib/jobs/form-values";
+import type { ContentState } from "@/components/admin/Badge";
 import { cn } from "@/lib/utils";
 import {
   EMPLOYMENT_TYPES,
@@ -21,16 +22,37 @@ import {
 } from "@/shared/jobs/categories";
 import { JobPreviewCard } from "./JobPreviewCard";
 
-/** Basics · Location & type · Details · How to apply · Publishing, with a live preview card. */
+export interface CompanyOption {
+  id: string;
+  name: string;
+  website: string | null;
+}
+
+/**
+ * Basics · Location & type · Details · How to apply · Publishing, with a live preview card.
+ *
+ * Staff pass `companies` (to pick which company account owns the job).
+ * Company accounts pass `company`: the name is fixed, "Featured" is hidden, and unless
+ * the company is trusted, publishing becomes "Submit for review".
+ */
 export function JobForm({
   initial,
   originalSlug,
   categories,
+  companies,
+  company,
+  state: jobState,
 }: {
   initial: JobFormValues;
   originalSlug?: string;
   categories: { slug: string; name: string }[];
+  companies?: CompanyOption[];
+  company?: { name: string; autoPublish: boolean };
+  /** Current state of an existing job (for the "goes back to review" warning). */
+  state?: ContentState;
 }) {
+  const isCompany = Boolean(company);
+  const needsReview = isCompany && !company?.autoPublish;
   const [state, action, pending] = useActionState(saveJob, initialFormState);
   const [v, setV] = useState(initial);
   const [slugEdited, setSlugEdited] = useState(Boolean(originalSlug));
@@ -68,9 +90,47 @@ export function JobForm({
             <Field label="Job title" htmlFor="title" required error={err("title")} counter={{ value: v.title.length, max: 100, min: 4 }} className="sm:col-span-2">
               <Input {...text("title")} placeholder="Frontend Developer (React / Next.js)" />
             </Field>
-            <Field label="Company" htmlFor="company" required error={err("company")}>
-              <Input {...text("company")} />
-            </Field>
+            {company ? (
+              <Field label="Company" htmlFor="company" hint="Set by your account. Ask Career Reads to change it.">
+                <Input id="company" name="company" value={company.name} readOnly aria-readonly className="opacity-80" />
+              </Field>
+            ) : (
+              <>
+                {companies && companies.length > 0 && (
+                  <Field
+                    label="Company account"
+                    htmlFor="companyId"
+                    error={err("companyId")}
+                    hint="Pick one if this job belongs to a company that has its own login. They'll see it and its stats."
+                    className="sm:col-span-2"
+                  >
+                    <Select
+                      id="companyId"
+                      name="companyId"
+                      value={v.companyId}
+                      onChange={(e) => {
+                        const picked = companies.find((c) => c.id === e.target.value);
+                        set("companyId", e.target.value);
+                        if (picked) {
+                          set("company", picked.name);
+                          if (!v.companyWebsite && picked.website) set("companyWebsite", picked.website);
+                        }
+                      }}
+                    >
+                      <option value="">None (posted by Career Reads)</option>
+                      {companies.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                )}
+                <Field label="Company" htmlFor="company" required error={err("company")} hint={v.companyId ? "Uses the company account's name" : undefined}>
+                  <Input {...text("company")} readOnly={Boolean(v.companyId)} className={v.companyId ? "opacity-80" : undefined} />
+                </Field>
+              </>
+            )}
             <Field label="Company website" htmlFor="companyWebsite" error={err("companyWebsite")} hint="Optional, https://…">
               <Input {...text("companyWebsite")} type="url" inputMode="url" placeholder="https://" />
             </Field>
@@ -204,19 +264,27 @@ export function JobForm({
                 {(["draft", "published"] as const).map((s) => (
                   <label key={s} className={cn("glass-inset flex flex-1 cursor-pointer items-center gap-2 px-3 py-2.5 text-sm", v.status === s && "!border-primary")}>
                     <input type="radio" name="status" value={s} checked={v.status === s} onChange={() => set("status", s)} className="accent-[var(--primary)]" />
-                    {s === "draft" ? "Draft (hidden)" : "Published"}
+                    {s === "draft" ? "Draft (hidden)" : needsReview ? "Submit for review" : "Published"}
                   </label>
                 ))}
               </div>
+              {needsReview && (
+                <p className="mt-2 text-xs text-muted">
+                  Career Reads checks every new or changed job before it goes live, usually within a working day.
+                  {jobState === "live" && " Saving changes takes this job off the site until it's approved again."}
+                </p>
+              )}
             </fieldset>
-            <Switch
-              className="sm:col-span-2"
-              name="featured"
-              label="Featured"
-              description="Pinned to the top of /jobs and shown on the dashboard"
-              checked={v.featured}
-              onCheckedChange={(c) => set("featured", c)}
-            />
+            {!isCompany && (
+              <Switch
+                className="sm:col-span-2"
+                name="featured"
+                label="Featured"
+                description="Pinned to the top of /jobs and shown on the dashboard"
+                checked={v.featured}
+                onCheckedChange={(c) => set("featured", c)}
+              />
+            )}
           </div>
         </GlassPanel>
       </div>
@@ -227,7 +295,18 @@ export function JobForm({
           <JobPreviewCard job={{ ...v, city: v.city || undefined, salary: v.salary || undefined }} />
         </GlassPanel>
         <Button type="submit" variant="primary" size="lg" disabled={pending} className="w-full">
-          <Save /> {pending ? "Saving…" : originalSlug ? "Save changes" : v.status === "published" ? "Publish job" : "Save draft"}
+          <Save />{" "}
+          {pending
+            ? "Saving…"
+            : v.status === "published" && needsReview
+              ? originalSlug
+                ? "Save and submit for review"
+                : "Submit for review"
+              : originalSlug
+                ? "Save changes"
+                : v.status === "published"
+                  ? "Publish job"
+                  : "Save draft"}
         </Button>
       </aside>
     </form>

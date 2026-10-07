@@ -8,7 +8,7 @@ export const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL ?? "postgres://po
 
 const TABLES = [
   "sessions", "invites", "user_prefs", "audit_log", "daily_stats", "rate_limits", "media", "messages",
-  "subscribers", "settings", "articles", "jobs", "authors", "categories", "users",
+  "subscribers", "settings", "articles", "jobs", "authors", "categories", "users", "companies",
 ];
 
 /** Points the app at the test database and applies migrations. */

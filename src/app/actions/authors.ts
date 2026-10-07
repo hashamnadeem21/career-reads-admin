@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getDb } from "@/db";
 import { articles, authors } from "@/db/schema";
 import { logAudit } from "@/lib/audit";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 import { revalidateSite } from "@/lib/revalidate-site";
 import { authorSchema } from "@/shared/content/schema";
 
@@ -34,7 +34,7 @@ async function refreshSite(...slugs: string[]) {
 
 /** Validated with the site's own authorSchema. */
 export async function saveAuthor(input: AuthorInput): Promise<AuthorResult> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const blank = (v: string) => (v.trim() ? v.trim() : undefined);
   const parsed = authorSchema.safeParse({
     slug: input.slug,
@@ -73,7 +73,7 @@ export async function saveAuthor(input: AuthorInput): Promise<AuthorResult> {
 }
 
 export async function deleteAuthor(slug: string): Promise<AuthorResult> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const db = getDb();
   const [author] = await db.select().from(authors).where(eq(authors.slug, z.string().max(80).parse(slug))).limit(1);
   if (!author) return { ok: false, message: "Already deleted." };

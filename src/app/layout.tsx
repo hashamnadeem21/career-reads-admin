@@ -9,8 +9,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "BlogNest Admin", template: "%s · BlogNest Admin" },
-  description: "Manage BlogNest posts, jobs and settings.",
+  title: { default: "Career Reads Admin", template: "%s · Career Reads Admin" },
+  description: "Manage Career Reads posts, jobs and settings.",
   robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
 };
 

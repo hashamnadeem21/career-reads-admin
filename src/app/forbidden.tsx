@@ -9,8 +9,8 @@ export default function Forbidden() {
       <div className="glass w-full max-w-md p-6">
       <EmptyState
         icon={ShieldAlert}
-        title="Admins only"
-        description="Your role doesn't include this page. Ask an admin if you need access."
+        title="You don't have access to this page"
+        description="Your account doesn't include this page. Ask a Career Reads admin if you think you need it."
         action={
           <Link href="/" className={buttonClasses({ variant: "primary" })}>
             Back to dashboard

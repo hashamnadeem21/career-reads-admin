@@ -4,7 +4,7 @@ import { and, eq, gt } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { getDb } from "@/db";
-import { sessions, users, type Role } from "@/db/schema";
+import { companies, sessions, users, type Role } from "@/db/schema";
 import { isProduction } from "@/lib/env";
 
 export const SESSION_COOKIE = "bn_admin_session";
@@ -16,6 +16,11 @@ export interface SessionUser {
   email: string;
   role: Role;
   mustChangePassword: boolean;
+  /** Company accounts only (null for staff). */
+  companyId: string | null;
+  companyName: string | null;
+  /** Whether the company may publish without review. */
+  companyAutoPublish: boolean;
 }
 
 export function hashToken(token: string): string {
@@ -49,7 +54,10 @@ export async function destroyAllSessions(userId: string): Promise<void> {
   await getDb().delete(sessions).where(eq(sessions.userId, userId));
 }
 
-/** The signed-in user for this request, or null. Looked up in the database every request. */
+/**
+ * The signed-in user for this request, or null. Looked up in the database every request,
+ * so role changes, removals and paused companies take effect immediately.
+ */
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
@@ -60,10 +68,19 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
       email: users.email,
       role: users.role,
       mustChangePassword: users.mustChangePassword,
+      companyId: users.companyId,
+      companyName: companies.name,
+      companyAutoPublish: companies.autoPublish,
+      companyActive: companies.active,
     })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
+    .leftJoin(companies, eq(companies.id, users.companyId))
     .where(and(eq(sessions.id, hashToken(token)), gt(sessions.expiresAt, new Date())))
     .limit(1);
-  return row ?? null;
+  if (!row) return null;
+  const { companyActive, ...user } = row;
+  // A company account whose company is missing or paused is treated as signed out.
+  if (user.role === "company" && (!user.companyId || !companyActive)) return null;
+  return { ...user, companyAutoPublish: user.companyAutoPublish ?? false };
 });

@@ -6,7 +6,7 @@ import { GlassPanel, PageHeader } from "@/components/admin/Glass";
 import { Notice } from "@/components/admin/Notice";
 import { PostsTable } from "@/components/posts/PostsTable";
 import { ListToolbar } from "@/components/table/ListToolbar";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 import { articleState } from "@/lib/content-state";
 import { getEditorOptions, listPosts, parsePostListParams, postStatusCounts } from "@/lib/posts/queries";
 import { siteUrl } from "@/lib/site-url";
@@ -14,7 +14,7 @@ import { siteUrl } from "@/lib/site-url";
 export const metadata: Metadata = { title: "Posts" };
 
 export default async function PostsPage({ searchParams }: PageProps<"/posts">) {
-  await requireUser();
+  await requireStaff();
   const params = parsePostListParams(await searchParams);
   const [list, counts, options] = await Promise.all([listPosts(params), postStatusCounts(), getEditorOptions()]);
   const now = new Date();

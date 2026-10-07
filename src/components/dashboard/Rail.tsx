@@ -5,6 +5,7 @@ import { Badge } from "@/components/admin/Badge";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { PanelHeader } from "@/components/admin/Glass";
 import type { ActivityItem } from "@/lib/dashboard/queries";
+import { roleLabels } from "@/lib/auth/roles";
 import type { SessionUser } from "@/lib/auth/session";
 import { timeAgo } from "@/lib/utils";
 
@@ -118,8 +119,8 @@ export function DashboardRail({
       <div className="flex flex-col items-center text-center">
         <Avatar name={user.name} size={64} className="text-lg" />
         <p className="mt-3 font-semibold">{user.name}</p>
-        <Badge tone={user.role === "admin" ? "info" : "warning"} className="mt-1 capitalize">
-          {user.role}
+        <Badge tone={user.role === "super_admin" ? "info" : "warning"} className="mt-1">
+          {roleLabels[user.role]}
         </Badge>
       </div>
       <QuickActions />

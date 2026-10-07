@@ -3,6 +3,7 @@
 import { CircleHelp, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { isStaff } from "@/lib/auth/roles";
 import type { SessionUser } from "@/lib/auth/session";
 import { Button } from "./Button";
 import { GlassDrawer } from "./GlassDialog";
@@ -20,7 +21,7 @@ export function MobileNav({ user, badges }: { user: SessionUser; badges: NavBadg
       side="left"
       open={open}
       onOpenChange={setOpen}
-      title="BlogNest Admin"
+      title={user.companyName ?? "Career Reads Admin"}
       trigger={
         <Button variant="secondary" size="icon" className="md:hidden" aria-label="Open menu">
           <Menu />
@@ -33,7 +34,7 @@ export function MobileNav({ user, badges }: { user: SessionUser; badges: NavBadg
           {visibleNav(bottomNav, user.role).map((entry) => (
             <NavItem key={entry.href} entry={entry} onNavigate={close} active={isActive(pathname, entry.href)} />
           ))}
-          <NavItem entry={{ href: "/help", label: "Help", icon: CircleHelp }} onNavigate={close} active={pathname === "/help"} />
+          {isStaff(user.role) && <NavItem entry={{ href: "/help", label: "Help", icon: CircleHelp }} onNavigate={close} active={pathname === "/help"} />}
           <div className="px-3.5 py-2">
             <ThemeSwitch />
           </div>

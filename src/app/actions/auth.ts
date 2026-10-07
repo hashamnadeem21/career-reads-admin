@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDb } from "@/db";
-import { users, userPrefs } from "@/db/schema";
+import { companies, users, userPrefs } from "@/db/schema";
 import { getDummyHash, hashPassword, verifyPassword } from "@/lib/auth/password";
 import { requireUser } from "@/lib/auth/require-user";
 import { newPasswordSchema } from "@/lib/auth/password-rules";
@@ -50,6 +50,10 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const [user] = await getDb().select().from(users).where(eq(users.email, email)).limit(1);
   const valid = await verifyPassword(user?.passwordHash ?? (await getDummyHash()), password);
   if (!user || !valid) return { message: GENERIC_ERROR, values };
+  if (user.companyId) {
+    const [company] = await getDb().select({ active: companies.active }).from(companies).where(eq(companies.id, user.companyId)).limit(1);
+    if (!company?.active) return { message: "This company account is paused. Contact Career Reads for help.", values };
+  }
 
   await clearRateLimit(limitKey("login-email", email));
   await createSession(user.id);

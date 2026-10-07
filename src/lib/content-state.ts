@@ -9,9 +9,15 @@ export function articleState(a: { status: string; publishedAt: Dateish }, now = 
   return time(a.publishedAt) > now.getTime() ? "scheduled" : "live";
 }
 
-/** Job state, matching the site's isJobVisible (deadline = last day to apply, UTC). */
-export function jobState(j: { status: string; postedAt: Dateish; deadline: Dateish }, now = new Date()): ContentState {
-  if (j.status !== "published") return "draft";
+/**
+ * Job state, matching the site's isJobVisible (deadline = last day to apply, UTC).
+ * Unpublished company jobs show their review state instead of plain "draft".
+ */
+export function jobState(
+  j: { status: string; postedAt: Dateish; deadline: Dateish; review?: string | null },
+  now = new Date(),
+): ContentState {
+  if (j.status !== "published") return j.review === "pending" ? "review" : j.review === "rejected" ? "rejected" : "draft";
   if (j.deadline && time(j.deadline) + 86_400_000 <= now.getTime()) return "expired";
   if (time(j.postedAt) > now.getTime()) return "scheduled";
   return "live";

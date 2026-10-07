@@ -26,7 +26,7 @@ export function AcceptInviteForm({ token, name }: { token: string; name: string 
         </p>
       )}
       <Button type="submit" variant="primary" size="lg" disabled={pending}>
-        {pending ? "Creating your account…" : "Join BlogNest Admin"}
+        {pending ? "Creating your account…" : "Join Career Reads Admin"}
       </Button>
     </form>
   );

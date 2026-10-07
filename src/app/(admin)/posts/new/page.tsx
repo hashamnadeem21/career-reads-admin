@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/admin/Glass";
 import { PostEditor } from "@/components/posts/PostEditor";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 import { env } from "@/lib/env";
 import { getEditorOptions } from "@/lib/posts/queries";
 
 export const metadata: Metadata = { title: "New post" };
 
 export default async function NewPostPage() {
-  await requireUser();
+  await requireStaff();
   const { categories, authors } = await getEditorOptions();
   return (
     <>

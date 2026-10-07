@@ -9,9 +9,11 @@ const MESSAGES: Record<string, [kind: "success" | "warning", text: string]> = {
   "saved-offline": ["warning", "Saved, but the public site couldn't be refreshed right now. It will update within the hour."],
   duplicated: ["success", "Copied as a new draft."],
   deleted: ["success", "Deleted."],
+  submitted: ["success", "Sent for review. Career Reads will check it and publish it soon."],
+  created: ["success", "Company created. Invite their team below."],
 };
 const FLAGS: Record<string, [param: string, value: string, text: string]> = {
-  welcome: ["welcome", "1", "Welcome to BlogNest Admin!"],
+  welcome: ["welcome", "1", "Welcome to Career Reads!"],
   password: ["password", "changed", "Password changed. You've been signed out on other devices."],
 };
 

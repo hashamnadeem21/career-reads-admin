@@ -265,6 +265,7 @@ const entityHref: Record<string, (slug: string) => string> = {
   media: () => "/media",
   settings: () => "/settings",
   user: () => "/users",
+  company: (id) => `/companies/${id}`,
 };
 
 export async function getActivity(limit = 8, offset = 0): Promise<ActivityItem[]> {

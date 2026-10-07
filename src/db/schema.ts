@@ -6,6 +6,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -19,7 +20,14 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const userRole = pgEnum("user_role", ["admin", "editor"]);
+/**
+ * super_admin: the owner; everything, including users, companies and settings.
+ * editor: editorial staff; posts, jobs, categories, authors, media, messages.
+ * company: an employer account; only its own company's jobs and their stats.
+ */
+export const userRole = pgEnum("user_role", ["super_admin", "editor", "company"]);
+/** Moderation of jobs posted by company accounts. Null for jobs posted by staff. */
+export const jobReview = pgEnum("job_review", ["pending", "approved", "rejected"]);
 export const contentStatus = pgEnum("content_status", ["draft", "published"]);
 export const categoryKind = pgEnum("category_kind", ["blog", "job"]);
 export const authorType = pgEnum("author_type", ["Person", "Organization"]);
@@ -28,16 +36,33 @@ export const themePref = pgEnum("theme_pref", ["light", "dark", "system"]);
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 
+/** Employers that post jobs through their own company accounts. */
+export const companies = pgTable("companies", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  website: text("website"),
+  /** Trusted companies publish without review. */
+  autoPublish: boolean("auto_publish").notNull().default(false),
+  /** Paused companies can't sign in; their jobs stay as they are. */
+  active: boolean("active").notNull().default(true),
+  createdAt: createdAt(),
+});
+
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: userRole("role").notNull().default("editor"),
+  /** Set for (and only for) company accounts. */
+  companyId: uuid("company_id").references(() => companies.id, { onDelete: "cascade" }),
   /** Set for temporary passwords (first admin, invites); cleared on change. */
   mustChangePassword: boolean("must_change_password").notNull().default(false),
   createdAt: createdAt(),
-});
+}, (t) => [
+  index("users_company_idx").on(t.companyId),
+  check("users_company_role", sql`(${t.role}::text = 'company') = (${t.companyId} is not null)`),
+]);
 
 /** Server-side sessions. `id` is the SHA-256 of the cookie token, never the token itself. */
 export const sessions = pgTable(
@@ -129,7 +154,13 @@ export const jobs = pgTable(
   {
     slug: text("slug").primaryKey(),
     title: text("title").notNull(),
+    /** Display name shown on the site. For company-account jobs it always equals companies.name. */
     company: text("company").notNull(),
+    /** The company account that owns this job (null = posted by BlogNest staff). */
+    companyId: uuid("company_id").references(() => companies.id, { onDelete: "set null" }),
+    review: jobReview("review"),
+    /** Why a job was sent back to the company (shown to them). */
+    reviewNote: text("review_note"),
     companyWebsite: text("company_website"),
     city: text("city"),
     country: text("country").notNull(),
@@ -156,7 +187,12 @@ export const jobs = pgTable(
     createdAt: createdAt(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("jobs_status_posted_idx").on(t.status, t.postedAt.desc()), index("jobs_category_idx").on(t.category)],
+  (t) => [
+    index("jobs_status_posted_idx").on(t.status, t.postedAt.desc()),
+    index("jobs_category_idx").on(t.category),
+    index("jobs_company_idx").on(t.companyId),
+    index("jobs_review_idx").on(t.review),
+  ],
 );
 
 export const media = pgTable("media", {
@@ -247,6 +283,7 @@ export const invites = pgTable("invites", {
   email: text("email").notNull(),
   name: text("name").notNull(),
   role: userRole("role").notNull(),
+  companyId: uuid("company_id").references(() => companies.id, { onDelete: "cascade" }),
   invitedBy: uuid("invited_by").references(() => users.id, { onDelete: "set null" }),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: createdAt(),
@@ -260,4 +297,6 @@ export type AuthorRow = typeof authors.$inferSelect;
 export type MediaRow = typeof media.$inferSelect;
 export type MessageRow = typeof messages.$inferSelect;
 export type SubscriberRow = typeof subscribers.$inferSelect;
+export type CompanyRow = typeof companies.$inferSelect;
 export type Role = (typeof userRole.enumValues)[number];
+export type JobReview = (typeof jobReview.enumValues)[number];

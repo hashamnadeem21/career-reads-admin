@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getDb } from "@/db";
 import { media } from "@/db/schema";
 import { logAudit } from "@/lib/audit";
-import { requireUser } from "@/lib/auth/require-user";
+import { requireStaff } from "@/lib/auth/require-user";
 import { getMediaUsage, listMedia, toMediaItem, type MediaItem, type MediaUsage } from "@/lib/media/queries";
 import { removeImage, storeImage } from "@/lib/media/storage";
 import { checkImage } from "@/lib/media/validate";
@@ -21,7 +21,7 @@ const altSchema = z.string().trim().max(200);
 
 /** Upload one or more images (field "files"). Each is checked by its bytes, max 5 MB. */
 export async function uploadImages(formData: FormData): Promise<UploadResult> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const limit = await rateLimit(`upload:${user.id}`, 60, 600);
   if (!limit.allowed) return { uploaded: [], errors: [{ name: "Upload", error: "Too many uploads. Please wait a few minutes." }] };
 
@@ -54,13 +54,13 @@ export async function uploadImages(formData: FormData): Promise<UploadResult> {
 }
 
 export async function searchMedia(q: string, page = 1): Promise<{ items: MediaItem[]; total: number }> {
-  await requireUser();
+  await requireStaff();
   const { items, total } = await listMedia({ q: q.trim().slice(0, 80) || undefined, page: Math.max(1, Math.floor(page)) });
   return { items, total };
 }
 
 export async function updateMediaAlt(id: string, alt: string): Promise<{ ok: boolean; message: string }> {
-  await requireUser();
+  await requireStaff();
   const parsed = altSchema.safeParse(alt);
   if (!parsed.success) return { ok: false, message: "Alt text must be 200 characters or fewer." };
   await getDb().update(media).set({ alt: parsed.data }).where(eq(media.id, z.uuid().parse(id)));
@@ -69,13 +69,13 @@ export async function updateMediaAlt(id: string, alt: string): Promise<{ ok: boo
 }
 
 export async function mediaUsage(url: string): Promise<MediaUsage[]> {
-  await requireUser();
+  await requireStaff();
   return getMediaUsage(z.string().max(500).parse(url));
 }
 
 /** Deletes an image only when no post or author uses it. */
 export async function deleteMedia(id: string): Promise<{ ok: boolean; message: string; usage?: MediaUsage[] }> {
-  const user = await requireUser();
+  const user = await requireStaff();
   const [row] = await getDb().select().from(media).where(eq(media.id, z.uuid().parse(id))).limit(1);
   if (!row) return { ok: false, message: "This image was already deleted." };
   const usage = await getMediaUsage(row.url);

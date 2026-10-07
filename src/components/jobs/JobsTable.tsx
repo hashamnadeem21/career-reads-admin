@@ -24,7 +24,18 @@ export interface JobListRow {
   sample: boolean;
 }
 
-export function JobsTable({ rows, pageInfo, filtered }: { rows: JobListRow[]; pageInfo: PageInfo; filtered: boolean }) {
+export function JobsTable({
+  rows,
+  pageInfo,
+  filtered,
+  needsReview = false,
+}: {
+  rows: JobListRow[];
+  pageInfo: PageInfo;
+  filtered: boolean;
+  /** Company accounts that aren't trusted: "Publish" becomes "Submit for review". */
+  needsReview?: boolean;
+}) {
   const [pending, start] = useTransition();
   const bulk = (action: "publish" | "unpublish" | "delete", slugs: string[], clear: () => void) =>
     start(async () => {
@@ -46,7 +57,9 @@ export function JobsTable({ rows, pageInfo, filtered }: { rows: JobListRow[]; pa
           : {
               icon: Briefcase,
               title: "No jobs yet",
-              description: "Post your first job. It appears on the site as soon as you publish it.",
+              description: needsReview
+                ? "Post your first job. Career Reads reviews it and then it appears on the site."
+                : "Post your first job. It appears on the site as soon as you publish it.",
               action: (
                 <Link href="/jobs/new" className={buttonClasses({ variant: "primary" })}>
                   <Plus /> New job
@@ -90,7 +103,7 @@ export function JobsTable({ rows, pageInfo, filtered }: { rows: JobListRow[]; pa
       bulkActions={(selected, clear) => (
         <>
           <Button size="sm" variant="primary" disabled={pending} onClick={() => bulk("publish", selected, clear)}>
-            Publish
+            {needsReview ? "Submit for review" : "Publish"}
           </Button>
           <Button size="sm" disabled={pending} onClick={() => bulk("unpublish", selected, clear)}>
             Unpublish

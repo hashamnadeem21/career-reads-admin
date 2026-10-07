@@ -10,13 +10,16 @@ import { Badge } from "@/components/admin/Badge";
 import { Button } from "@/components/admin/Button";
 import { Field, Input, Select } from "@/components/admin/Field";
 import { ConfirmDialog, GlassDialog } from "@/components/admin/GlassDialog";
+import { roleLabels } from "@/lib/auth/roles";
 import { formatDate } from "@/lib/utils";
+
+type StaffRole = "super_admin" | "editor";
 
 export interface TeamMember {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "editor";
+  role: StaffRole;
   createdAt: string;
   isYou: boolean;
 }
@@ -24,7 +27,7 @@ export interface TeamMember {
 export interface PendingInvite {
   email: string;
   name: string;
-  role: "admin" | "editor";
+  role: StaffRole;
   expiresAt: string;
 }
 
@@ -95,10 +98,10 @@ function InviteDialog() {
           <Field label="Email" htmlFor="invite-email" error={errors.email}>
             <Input id="invite-email" type="email" value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} invalid={Boolean(errors.email)} />
           </Field>
-          <Field label="Role" htmlFor="invite-role" hint="Editors write and publish posts and jobs. Admins can also change settings and users.">
+          <Field label="Role" htmlFor="invite-role" hint="Editors write and publish posts and jobs. Super admins can also manage companies, settings and users.">
             <Select id="invite-role" value={v.role} onChange={(e) => setV({ ...v, role: e.target.value })}>
               <option value="editor">Editor</option>
-              <option value="admin">Admin</option>
+              <option value="super_admin">Super admin</option>
             </Select>
           </Field>
           <Button type="submit" variant="primary" disabled={pending}>
@@ -110,11 +113,11 @@ function InviteDialog() {
   );
 }
 
-/** Avatar cards with role badges (Admin = blue, Editor = amber). */
+/** Avatar cards with role badges (Super admin = blue, Editor = amber). */
 export function UsersManager({ members, invites }: { members: TeamMember[]; invites: PendingInvite[] }) {
   const router = useRouter();
   const [, start] = useTransition();
-  const adminCount = members.filter((m) => m.role === "admin").length;
+  const adminCount = members.filter((m) => m.role === "super_admin").length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,7 +126,7 @@ export function UsersManager({ members, invites }: { members: TeamMember[]; invi
       </div>
       <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Team members">
         {members.map((m, i) => {
-          const lastAdmin = m.role === "admin" && adminCount === 1;
+          const lastAdmin = m.role === "super_admin" && adminCount === 1;
           return (
             <li key={m.id} className="glass lift rise-in flex flex-col gap-4 p-5" style={{ "--stagger": i } as React.CSSProperties}>
               <div className="flex items-center gap-3">
@@ -134,9 +137,7 @@ export function UsersManager({ members, invites }: { members: TeamMember[]; invi
                   </p>
                   <p className="truncate text-xs text-muted">{m.email}</p>
                 </div>
-                <Badge tone={m.role === "admin" ? "info" : "warning"} className="capitalize">
-                  {m.role}
-                </Badge>
+                <Badge tone={m.role === "super_admin" ? "info" : "warning"}>{roleLabels[m.role]}</Badge>
               </div>
               <p className="text-xs text-faint">Joined {formatDate(m.createdAt)}</p>
               <div className="mt-auto flex items-center gap-2">
@@ -144,7 +145,7 @@ export function UsersManager({ members, invites }: { members: TeamMember[]; invi
                   aria-label={`Role for ${m.name}`}
                   value={m.role}
                   disabled={lastAdmin}
-                  title={lastAdmin ? "There must always be at least one admin" : undefined}
+                  title={lastAdmin ? "There must always be at least one super admin" : undefined}
                   onChange={(e) =>
                     start(async () => {
                       const r = await changeRole(m.id, e.target.value);
@@ -154,7 +155,7 @@ export function UsersManager({ members, invites }: { members: TeamMember[]; invi
                   }
                 >
                   <option value="editor">Editor</option>
-                  <option value="admin">Admin</option>
+                  <option value="super_admin">Super admin</option>
                 </Select>
                 <ConfirmDialog
                   trigger={
@@ -186,9 +187,7 @@ export function UsersManager({ members, invites }: { members: TeamMember[]; invi
               <li key={inv.email} className="glass-inset flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
                 <span className="font-medium">{inv.name}</span>
                 <span className="text-muted">{inv.email}</span>
-                <Badge tone={inv.role === "admin" ? "info" : "warning"} className="capitalize">
-                  {inv.role}
-                </Badge>
+                <Badge tone={inv.role === "super_admin" ? "info" : "warning"}>{roleLabels[inv.role]}</Badge>
                 <span className="text-xs text-faint">Expires {formatDate(inv.expiresAt)}</span>
                 <Button
                   size="sm"

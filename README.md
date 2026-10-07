@@ -1,6 +1,6 @@
-# BlogNest Admin
+# Career Reads Admin
 
-The admin panel for [BlogNest](../blognest): write and publish posts, post jobs, manage categories, authors, media, messages, settings and users. It is its own Next.js 16 app and shares one PostgreSQL database with the public site.
+The admin panel for [Career Reads](../blognest): write and publish posts, post jobs, manage categories, authors, media, messages, settings and users. It is its own Next.js 16 app and shares one PostgreSQL database with the public site.
 
 - Design: [`docs/ADMIN_DESIGN.md`](docs/ADMIN_DESIGN.md) (frosted glass, light "Aurora" and dark "Ember")
 - Plan and architecture: [`docs/ADMIN_PANEL_PLAN.md`](docs/ADMIN_PANEL_PLAN.md)
@@ -33,7 +33,7 @@ In development, uploaded images are saved into the site's `public/uploads/` fold
 | `npm run db:generate` | Create a migration after editing `src/db/schema.ts` (then copy the schema to the site, see below) |
 | `npm run db:migrate` | Apply migrations to `DATABASE_URL` |
 | `npm run db:import` | Copy the site's file content into the database (safe to re-run; overwrites rows with the same slug) |
-| `npm run admin:create -- email "Name" [--reset]` | Create the first admin, or reset someone's password, with a temporary password |
+| `npm run admin:create -- email "Name" [--reset]` | Create the first super admin, or reset someone's password (they become a super admin), with a temporary password |
 | `npm run sync:shared` | Copy the site's shared rules into `src/shared/` (run after changing them in the site) |
 | `npm run check` | Lint, typecheck, unit tests, build |
 | `npm test` | Unit tests (uses the `blognest_test` database for DB tests) |
@@ -67,16 +67,35 @@ blognest-admin ──writes──▶ Postgres ◀──reads── blognest
    | `BLOB_READ_WRITE_TOKEN` (Vercel Blob store) | ✅ | |
    | `BLOGNEST_DIR` | only for `db:import` | |
 
-4. Create the first admin: `DATABASE_URL=<neon url> npm run admin:create -- you@example.com "Your Name"`. Sign in and choose a new password.
+4. Create the first super admin: `DATABASE_URL=<neon url> npm run admin:create -- you@example.com "Your Name"`. Sign in and choose a new password.
 5. Invite the team from **Users** (each invite is a one-time link valid for 7 days).
 
 Never run `scripts/seed-test-users.ts` against production: it creates QA accounts with known passwords (it refuses Neon URLs).
+
+## Roles and company accounts
+
+| | Super admin | Editor | Company |
+| --- | --- | --- | --- |
+| Dashboard | Full site dashboard | Full site dashboard | Their own jobs: live / in review, views and Apply clicks |
+| Jobs | All jobs; approve or send back company jobs | All jobs; approve or send back company jobs | Only their company's jobs |
+| Posts, categories, authors, media, messages, activity, help | ✅ | ✅ | 403 |
+| Companies (every company's stats, invites, pause) | ✅ | 403 | 403 |
+| Users, Settings | ✅ | 403 | 403 |
+
+**Adding a company:** Companies → **New company** → **Invite**. Send the one-time link (valid 7 days) to someone at the company; they choose a password and land on their company dashboard.
+
+**Review flow:** by default, when a company publishes a new job or edits a live one, it stays off the site with status **In review**. Staff see a count on **Jobs** and in notifications, open the job and choose **Approve & publish** or **Send back** (with a note the company sees). Turn on **Trusted** for a company (Companies → the company → Edit) to let its jobs go live without review. Companies can't mark jobs as Featured; that stays a Career Reads decision.
+
+**Stats:** views and Apply clicks come from the site's cookie-free counters (`daily_stats`), per job page per day. Companies see their own; super admins see every company on **Companies**, and each company's chart and per-job table on its page.
+
+**Pausing** a company signs its people out and blocks sign-in; its jobs are untouched. **Deleting** a company removes its user accounts and invites; its jobs and stats are kept as Career Reads jobs.
 
 ## Security model
 
 - Server-side sessions in Postgres (`sessions` table stores only a SHA-256 of the cookie token); httpOnly, `SameSite=Lax`, `Secure` in production; 30 days.
 - `requireUser()` runs on **every** page, Server Action and route handler; `src/proxy.ts` only redirects logged-out visitors. A unit test (`tests/unit/security.test.ts`) fails the build if an action or route forgets it.
-- Roles: **Admin** (everything) and **Editor** (posts, jobs, categories, authors, media, messages). Settings and Users are admin-only and return 403 for editors. There is always at least one admin.
+- Roles (see [Roles and company accounts](#roles-and-company-accounts)): **Super admin**, **Editor** and **Company**. Every page and action declares who may use it with `requireUser()`, `requireStaff()` or `requireSuperAdmin()`; anyone else gets a 403. There is always at least one super admin.
+- Company accounts are confined to their own company's jobs: every job query goes through `jobScope()` / `canAccessJob()` (`src/lib/jobs/access.ts`), and another company's job returns 404 rather than 403, so its existence isn't revealed. `tests/unit/security.test.ts` fails the build if a staff-only page or action becomes reachable by companies.
 - Passwords: argon2id; login and password changes are rate-limited in Postgres (works across serverless instances); keys are hashed, never raw IPs or emails.
 - Uploads: checked by their bytes (JPG, PNG, WebP, AVIF only; SVG is refused), max 5 MB, random file names.
 - Content: MDX is filtered by `remarkSafeMdx` (no `{expressions}`, imports, unknown components, event handlers or `javascript:` links). The editor shows problems on save; the site strips anything unsafe.

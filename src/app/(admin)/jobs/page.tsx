@@ -9,7 +9,7 @@ import { ListToolbar } from "@/components/table/ListToolbar";
 import { requireUser } from "@/lib/auth/require-user";
 import { getCompany } from "@/lib/companies/queries";
 import { jobState } from "@/lib/content-state";
-import { getJobCategories, jobStatusCounts, listJobs, parseJobListParams } from "@/lib/jobs/queries";
+import { getJobCategories, listJobs, parseJobListParams } from "@/lib/jobs/queries";
 
 export const metadata: Metadata = { title: "Jobs" };
 
@@ -18,12 +18,12 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
   const user = await requireUser();
   const isCompany = user.role === "company";
   const params = parseJobListParams(await searchParams);
-  const [list, counts, categories, filterCompany] = await Promise.all([
+  const [list, categories, filterCompany] = await Promise.all([
     listJobs(user, params),
-    jobStatusCounts(user),
     getJobCategories(),
     !isCompany && params.company ? getCompany(params.company) : null,
   ]);
+  const { counts } = list;
   const now = new Date();
 
   return (

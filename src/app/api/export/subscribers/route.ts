@@ -1,26 +1,16 @@
-import { asc } from "drizzle-orm";
-import { getDb } from "@/db";
-import { subscribers } from "@/db/schema";
+import { apiResponse } from "@/lib/api/client";
 import { requireStaff } from "@/lib/auth/require-user";
 
-/** Neutralises spreadsheet formulas (CSV injection) and quotes every field. */
-function csvField(value: string): string {
-  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
-  return `"${safe.replace(/"/g, '""')}"`;
-}
-
-/** GET /api/export/subscribers → CSV download (signed-in users only). */
+/** GET /api/export/subscribers → CSV download (staff only). The API builds the file. */
 export async function GET() {
   await requireStaff();
-  const rows = await getDb().select().from(subscribers).orderBy(asc(subscribers.createdAt));
-  const lines = [
-    ["email", "confirmed", "subscribed_at"].join(","),
-    ...rows.map((r) => [csvField(r.email), r.confirmed ? "yes" : "no", r.createdAt.toISOString()].join(",")),
-  ];
-  return new Response(`${lines.join("\n")}\n`, {
+  const upstream = await apiResponse("/subscribers/export.csv", { query: {} });
+  return new Response(await upstream.text(), {
     headers: {
       "content-type": "text/csv; charset=utf-8",
-      "content-disposition": `attachment; filename="blognest-subscribers-${new Date().toISOString().slice(0, 10)}.csv"`,
+      "content-disposition":
+        upstream.headers.get("content-disposition") ??
+        `attachment; filename="blognest-subscribers-${new Date().toISOString().slice(0, 10)}.csv"`,
       "cache-control": "private, no-store",
     },
   });

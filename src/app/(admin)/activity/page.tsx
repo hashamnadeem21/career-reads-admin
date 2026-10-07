@@ -1,26 +1,22 @@
-import { count } from "drizzle-orm";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClasses } from "@/components/admin/Button";
 import { GlassPanel, PageHeader } from "@/components/admin/Glass";
 import { ActivityFeed } from "@/components/dashboard/Rail";
-import { getDb } from "@/db";
-import { auditLog } from "@/db/schema";
 import { requireStaff } from "@/lib/auth/require-user";
-import { getActivity } from "@/lib/dashboard/queries";
+import { getActivityPage } from "@/lib/dashboard/queries";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Activity" };
-const PAGE_SIZE = 30;
 
 /** Everything changed in the admin, newest first (from audit_log). */
 export default async function ActivityPage({ searchParams }: PageProps<"/activity">) {
   await requireStaff();
   const raw = Number.parseInt(String((await searchParams).page ?? "1"), 10);
   const page = Number.isFinite(raw) && raw > 0 ? raw : 1;
-  const [items, [{ total }]] = await Promise.all([getActivity(PAGE_SIZE, (page - 1) * PAGE_SIZE), getDb().select({ total: count() }).from(auditLog)]);
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const { items, total, pageSize } = await getActivityPage(page);
+  const pages = Math.max(1, Math.ceil(total / pageSize));
   return (
     <>
       <PageHeader title="Activity" description="Who changed what, newest first." />

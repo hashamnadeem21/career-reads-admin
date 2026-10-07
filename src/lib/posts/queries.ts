@@ -1,18 +1,11 @@
 import "server-only";
-import { and, asc, count, eq, ilike, or, sql, type SQL } from "drizzle-orm";
-import { getDb } from "@/db";
-import { articles, authors, categories, type ArticleRow } from "@/db/schema";
+import { apiFetch, apiGetOrNull } from "@/lib/api/client";
+import type { ArticleRow, ContentStatus } from "@/lib/api/types";
 
 export const POST_STATUS_FILTERS = ["live", "draft", "scheduled"] as const;
 export type PostStatusFilter = (typeof POST_STATUS_FILTERS)[number];
 
-export function postStatusCondition(status: PostStatusFilter): SQL {
-  if (status === "draft") return eq(articles.status, "draft");
-  if (status === "scheduled") return sql`(${articles.status} = 'published' and ${articles.publishedAt} > now())`;
-  return sql`(${articles.status} = 'published' and ${articles.publishedAt} <= now())`;
-}
-
-const SORTS = { published: articles.publishedAt, title: articles.title, updated: articles.savedAt } as const;
+const SORTS = { published: true, title: true, updated: true } as const;
 export const POST_PAGE_SIZE = 20;
 
 export interface PostListParams {
@@ -39,65 +32,41 @@ export function parsePostListParams(sp: Record<string, string | string[] | undef
   };
 }
 
-export async function listPosts(params: PostListParams) {
-  const db = getDb();
-  const where: SQL[] = [];
-  if (params.q) {
-    const p = `%${params.q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
-    where.push(or(ilike(articles.title, p), ilike(articles.slug, p), sql`array_to_string(${articles.tags}, ' ') ilike ${p}`)!);
-  }
-  if (params.status) where.push(postStatusCondition(params.status));
-  if (params.category) where.push(eq(articles.category, params.category));
-  const condition = where.length ? and(...where) : undefined;
-  const column = SORTS[params.sort];
-  const [rows, [{ total }]] = await Promise.all([
-    db
-      .select({
-        slug: articles.slug,
-        title: articles.title,
-        category: articles.category,
-        categoryName: categories.name,
-        coverImage: articles.coverImage,
-        status: articles.status,
-        publishedAt: articles.publishedAt,
-        savedAt: articles.savedAt,
-        featured: articles.featured,
-        authorName: authors.name,
-      })
-      .from(articles)
-      .leftJoin(categories, eq(categories.slug, articles.category))
-      .leftJoin(authors, eq(authors.slug, articles.author))
-      .where(condition)
-      .orderBy(params.dir === "asc" ? sql`${column} asc` : sql`${column} desc`, asc(articles.slug))
-      .limit(POST_PAGE_SIZE)
-      .offset((params.page - 1) * POST_PAGE_SIZE),
-    db.select({ total: count() }).from(articles).where(condition),
-  ]);
-  return { rows, total, page: params.page, pageSize: POST_PAGE_SIZE };
+export interface PostListRow {
+  slug: string;
+  title: string;
+  category: string;
+  categoryName: string | null;
+  coverImage: string;
+  status: ContentStatus;
+  publishedAt: Date;
+  savedAt: Date;
+  featured: boolean;
+  authorName: string | null;
 }
 
-export async function postStatusCounts() {
-  const [row] = await getDb()
-    .select({
-      all: count(),
-      live: sql<number>`count(*) filter (where ${postStatusCondition("live")})`.mapWith(Number),
-      draft: sql<number>`count(*) filter (where ${postStatusCondition("draft")})`.mapWith(Number),
-      scheduled: sql<number>`count(*) filter (where ${postStatusCondition("scheduled")})`.mapWith(Number),
-    })
-    .from(articles);
-  return row;
+export interface PostStatusCounts {
+  all: number;
+  live: number;
+  draft: number;
+  scheduled: number;
 }
 
-export async function getPost(slug: string): Promise<ArticleRow | null> {
-  const [row] = await getDb().select().from(articles).where(eq(articles.slug, slug)).limit(1);
-  return row ?? null;
+/** One page of posts plus the status tab counts. */
+export function listPosts(params: PostListParams) {
+  return apiFetch<{ rows: PostListRow[]; total: number; page: number; pageSize: number; counts: PostStatusCounts }>(
+    "/posts",
+    { query: { ...params }, dates: true },
+  );
 }
 
-export async function getEditorOptions() {
-  const db = getDb();
-  const [cats, people] = await Promise.all([
-    db.select({ slug: categories.slug, name: categories.name }).from(categories).where(eq(categories.kind, "blog")).orderBy(asc(categories.sortOrder), asc(categories.name)),
-    db.select({ slug: authors.slug, name: authors.name }).from(authors).orderBy(asc(authors.name)),
-  ]);
-  return { categories: cats, authors: people };
+export function getPost(slug: string): Promise<ArticleRow | null> {
+  return apiGetOrNull<ArticleRow>(`/posts/${encodeURIComponent(slug)}`, { dates: true });
+}
+
+export function getEditorOptions(): Promise<{
+  categories: { slug: string; name: string }[];
+  authors: { slug: string; name: string }[];
+}> {
+  return apiFetch("/posts/options");
 }

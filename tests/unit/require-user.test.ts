@@ -15,7 +15,7 @@ vi.mock("next/navigation", () => ({
 
 const { requireUser, requireStaff, requireSuperAdmin, isStaff, isSuperAdmin } = await import("@/lib/auth/require-user");
 
-const base = { mustChangePassword: false, companyId: null, companyName: null, companyAutoPublish: false };
+const base = { mustChangePassword: false, companyId: null, companyName: null, companyAutoPublish: false, theme: "system" as const };
 const editor: SessionUser = { ...base, id: "1", name: "Eddie", email: "e@x.test", role: "editor" };
 const owner: SessionUser = { ...base, id: "2", name: "Hasham", email: "h@x.test", role: "super_admin" };
 const company: SessionUser = { ...base, id: "3", name: "Ada", email: "a@x.test", role: "company", companyId: "c1", companyName: "Acme" };

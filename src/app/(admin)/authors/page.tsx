@@ -1,9 +1,8 @@
-import { asc, count } from "drizzle-orm";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/admin/Glass";
 import { AuthorsManager } from "@/components/authors/AuthorsManager";
-import { getDb } from "@/db";
-import { articles, authors } from "@/db/schema";
+import { apiFetch } from "@/lib/api/client";
+import type { AuthorRow } from "@/lib/api/types";
 import { requireStaff } from "@/lib/auth/require-user";
 import { env } from "@/lib/env";
 import { siteUrl } from "@/lib/site-url";
@@ -12,12 +11,7 @@ export const metadata: Metadata = { title: "Authors" };
 
 export default async function AuthorsPage() {
   await requireStaff();
-  const db = getDb();
-  const [rows, counts] = await Promise.all([
-    db.select().from(authors).orderBy(asc(authors.name)),
-    db.select({ slug: articles.author, n: count() }).from(articles).groupBy(articles.author),
-  ]);
-  const posts = new Map(counts.map((c) => [c.slug, c.n]));
+  const rows = await apiFetch<(AuthorRow & { posts: number })[]>("/authors");
   return (
     <>
       <PageHeader title="Authors" description="Bylines with photo, bio and links. Shown on posts and author pages." />
@@ -33,7 +27,7 @@ export default async function AuthorsPage() {
           avatar: a.avatar,
           avatarUrl: siteUrl(a.avatar),
           links: { website: a.links.website ?? "", x: a.links.x ?? "", linkedin: a.links.linkedin ?? "" },
-          posts: posts.get(a.slug) ?? 0,
+          posts: a.posts,
         }))}
       />
     </>

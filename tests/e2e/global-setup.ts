@@ -1,33 +1,20 @@
-import { readdir, readFile } from "node:fs/promises";
-import path from "node:path";
-import { config } from "dotenv";
-import { closeDb } from "@/db";
-import { articles, authors, categories, jobs } from "@/db/schema";
-import { buildImportPlan } from "@/lib/import/plan";
-import { resetTestDb, connectTestDb } from "../helpers/test-db";
-import { seedTestUsers } from "./seed";
+import { execFileSync } from "node:child_process";
+import { E2E_API_DIR, E2E_DATABASE_URL, SITE_DIR } from "../../playwright.config";
+import { TEST_COMPANIES, TEST_USERS } from "./seed";
 
-config({ path: [".env.local", ".env"], quiet: true });
-
-async function files(dir: string, ext: RegExp) {
-  const names = (await readdir(dir)).filter((f) => ext.test(f));
-  return Promise.all(names.map(async (name) => ({ name, source: await readFile(path.join(dir, name), "utf8") })));
-}
-
-/** Fresh test database: migrations, the site's real content, and QA users. */
+/**
+ * Fresh test database before the servers start: migrations, the site's real content and the QA
+ * accounts. The API owns the database, so its `e2e:seed` script does the work.
+ */
 export default async function globalSetup() {
-  const db = await connectTestDb();
-  await resetTestDb(db);
-  const content = path.resolve(process.env.BLOGNEST_DIR ?? "../blognest", "content");
-  const plan = buildImportPlan({
-    articleFiles: await files(path.join(content, "articles"), /\.mdx?$/),
-    authorFiles: await files(path.join(content, "authors"), /\.json$/),
-    jobFiles: await files(path.join(content, "jobs"), /\.json$/),
+  execFileSync("npm", ["run", "--silent", "e2e:seed"], {
+    cwd: E2E_API_DIR,
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      DATABASE_URL: E2E_DATABASE_URL,
+      BLOGNEST_DIR: SITE_DIR,
+      E2E_SEED: JSON.stringify({ companies: TEST_COMPANIES, users: TEST_USERS }),
+    },
   });
-  await db.insert(categories).values(plan.categories);
-  await db.insert(authors).values(plan.authors);
-  await db.insert(articles).values(plan.articles);
-  if (plan.jobs.length) await db.insert(jobs).values(plan.jobs);
-  await seedTestUsers(db);
-  await closeDb();
 }

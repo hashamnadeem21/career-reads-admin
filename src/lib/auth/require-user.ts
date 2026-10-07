@@ -1,6 +1,6 @@
 import "server-only";
 import { forbidden, redirect } from "next/navigation";
-import type { Role } from "@/db/schema";
+import type { Role } from "@/lib/api/types";
 import { STAFF_ROLES } from "./roles";
 import { getCurrentUser, type SessionUser } from "./session";
 

@@ -1,59 +1,51 @@
 #!/usr/bin/env node
 /**
- * Copies the public site's shared rules (schemas, image placement, visibility,
- * category lists) into src/shared/ so the admin validates and previews content
- * exactly like the site. Run after changing any of these files in blognest:
+ * Copies the API's content rules that the admin UI needs into src/shared/: the MDX rules and
+ * table of contents for the post preview, the schemas behind the editor's live hints, and the
+ * job and settings label lists. The API (blognest-api) owns them and validates every save;
+ * these copies only keep the screens in step. Run after changing any of them in the API:
  *
- *   npm run sync:shared            (reads BLOGNEST_DIR, default ../blognest)
+ *   npm run sync:shared            (reads BLOGNEST_API_DIR, default ../blognest-api)
  *   npm run sync:shared -- --check (exit 1 if the copies are out of date)
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
-const siteDir = path.resolve(root, process.env.BLOGNEST_DIR ?? "../blognest");
+const apiDir = path.resolve(root, process.env.BLOGNEST_API_DIR ?? "../blognest-api");
 const check = process.argv.includes("--check");
 
-/** [site path, admin path] */
 const FILES = [
-  ["src/lib/categories.ts", "src/shared/categories.ts"],
-  ["src/lib/content/schema.ts", "src/shared/content/schema.ts"],
-  ["src/lib/content/toc.ts", "src/shared/content/toc.ts"],
-  ["src/lib/content/visibility.ts", "src/shared/content/visibility.ts"],
-  ["src/lib/jobs/categories.ts", "src/shared/jobs/categories.ts"],
-  ["src/lib/jobs/schema.ts", "src/shared/jobs/schema.ts"],
-  ["src/lib/jobs/visibility.ts", "src/shared/jobs/visibility.ts"],
-  ["src/lib/settings-schema.ts", "src/shared/settings-schema.ts"],
-  ["src/lib/content/safe-mdx.ts", "src/shared/content/safe-mdx.ts"],
+  "content/schema.ts",
+  "content/toc.ts",
+  "content/safe-mdx.ts",
+  "jobs/categories.ts",
+  "jobs/schema.ts",
+  "settings-schema.ts",
 ];
 
-/** Site import specifiers → admin equivalents. */
-const IMPORTS = {
-  "@/lib/categories": "@/shared/categories",
-  "@/lib/content/schema": "@/shared/content/schema",
-  "@/lib/jobs/categories": "@/shared/jobs/categories",
-};
-
 let stale = 0;
-for (const [from, to] of FILES) {
-  const source = path.join(siteDir, from);
+for (const file of FILES) {
+  const source = path.join(apiDir, "src/shared", file);
   if (!existsSync(source)) {
-    console.warn(`skip   ${from} (not in ${siteDir})`);
+    console.warn(`skip   ${file} (not in ${apiDir})`);
     continue;
   }
-  let code = readFileSync(source, "utf8");
-  for (const [a, b] of Object.entries(IMPORTS)) code = code.replaceAll(`"${a}"`, `"${b}"`);
-  const out = `// Copied from blognest/${from} by scripts/sync-shared.mjs. Do not edit here: change the site, then re-run \`npm run sync:shared\`.\n${code}`;
-  const target = path.join(root, to);
+  const code = readFileSync(source, "utf8")
+    .replace(/^\/\/ Owned by blognest-api.*\n/, "")
+    // The API is ESM with explicit .js extensions; the admin's bundler resolves bare paths.
+    .replace(/(from "\.{1,2}\/[^"]+)\.js"/g, '$1"');
+  const out = `// Copied from blognest-api/src/shared/${file} by scripts/sync-shared.mjs. Do not edit here: change the API, then re-run \`npm run sync:shared\`.\n${code}`;
+  const target = path.join(root, "src/shared", file);
   const current = existsSync(target) ? readFileSync(target, "utf8") : "";
   if (current === out) continue;
   stale++;
   if (check) {
-    console.error(`stale  ${to}`);
+    console.error(`stale  src/shared/${file}`);
     continue;
   }
   mkdirSync(path.dirname(target), { recursive: true });
   writeFileSync(target, out);
-  console.log(`synced ${to}`);
+  console.log(`synced src/shared/${file}`);
 }
 if (check && stale) process.exit(1);

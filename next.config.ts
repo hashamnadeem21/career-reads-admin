@@ -18,7 +18,6 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   reactStrictMode: true,
-  serverExternalPackages: ["@node-rs/argon2"],
   experimental: {
     authInterrupts: true,
     serverActions: { bodySizeLimit: "6mb" },

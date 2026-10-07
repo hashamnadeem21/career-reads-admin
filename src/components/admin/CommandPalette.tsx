@@ -6,7 +6,7 @@ import { Briefcase, FileText, Moon, Plus, Search, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { searchEverything, type SearchHit } from "@/app/actions/search";
-import type { Role } from "@/db/schema";
+import type { Role } from "@/lib/api/types";
 import { isStaff } from "@/lib/auth/roles";
 import { mainNav, bottomNav, visibleNav } from "./nav";
 import { applyTheme } from "./ThemeSwitch";

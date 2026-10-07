@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { CalendarClock, FilePen, Hourglass, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/admin/Glass";
 import { CompanyDashboard } from "@/components/companies/CompanyDashboard";
@@ -10,20 +9,9 @@ import { RecentTable } from "@/components/dashboard/RecentTable";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { TrafficCard } from "@/components/dashboard/TrafficCard";
 import { WorkList } from "@/components/dashboard/WorkList";
-import { getDb } from "@/db";
-import { userPrefs } from "@/db/schema";
 import { requireUser } from "@/lib/auth/require-user";
 import { resolveLayout } from "@/lib/dashboard/layout";
-import {
-  getActivity,
-  getContentMix,
-  getFeaturedJob,
-  getRecentContent,
-  getStatCards,
-  getTopJobCategories,
-  getTraffic,
-  getWorkLists,
-} from "@/lib/dashboard/queries";
+import { getDashboard } from "@/lib/dashboard/queries";
 import { siteUrl } from "@/lib/site-url";
 
 /** Staff get the full dashboard; company accounts get their own jobs overview. */
@@ -32,17 +20,7 @@ export default async function DashboardPage() {
   if (user.role === "company" && user.companyId) {
     return <CompanyDashboard companyId={user.companyId} companyName={user.companyName ?? "Your company"} />;
   }
-  const [stats, traffic, topCategories, mix, recent, lists, featured, activity, [prefs]] = await Promise.all([
-    getStatCards(),
-    getTraffic(),
-    getTopJobCategories(),
-    getContentMix(),
-    getRecentContent(),
-    getWorkLists(),
-    getFeaturedJob(),
-    getActivity(8),
-    getDb().select().from(userPrefs).where(eq(userPrefs.userId, user.id)).limit(1),
-  ]);
+  const { stats, traffic, topCategories, mix, recent, lists, featured, activity, layout } = await getDashboard();
 
   const statCards = (
     <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-4 [&>*]:w-[78vw] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto">
@@ -58,7 +36,7 @@ export default async function DashboardPage() {
       <Notice />
       <PageHeader title="My Dashboard" />
       <DashboardGrid
-        initialLayout={resolveLayout(prefs?.dashboardLayout)}
+        initialLayout={resolveLayout(layout)}
         mix={mix}
         cards={{
           stats: statCards,

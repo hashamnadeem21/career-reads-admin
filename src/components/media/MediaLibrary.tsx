@@ -25,11 +25,11 @@ function Details({ item, onChange, onDeleted }: { item: MediaItem; onChange: (i:
 
   useEffect(() => {
     let live = true;
-    mediaUsage(item.url).then((u) => live && setUsage(u));
+    mediaUsage(item.id).then((u) => live && setUsage(u));
     return () => {
       live = false;
     };
-  }, [item.url]);
+  }, [item.id]);
 
   return (
     <div className="flex flex-col gap-5">

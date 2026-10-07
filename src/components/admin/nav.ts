@@ -11,7 +11,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import type { Role } from "@/db/schema";
+import type { Role } from "@/lib/api/types";
 import { STAFF_ROLES } from "@/lib/auth/roles";
 
 export interface NavEntry {

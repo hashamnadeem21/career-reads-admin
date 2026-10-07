@@ -1,4 +1,4 @@
-// Copied from blognest/src/lib/jobs/categories.ts by scripts/sync-shared.mjs. Do not edit here: change the site, then re-run `npm run sync:shared`.
+// Copied from blognest-api/src/shared/jobs/categories.ts by scripts/sync-shared.mjs. Do not edit here: change the API, then re-run `npm run sync:shared`.
 /**
  * Job categories. Like blog categories (see src/lib/categories.ts), this typed
  * list is the default and is replaced in place by the database loader.

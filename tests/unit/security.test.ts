@@ -69,13 +69,12 @@ describe("server-side authorization", () => {
     },
   );
 
-  it("job actions open to companies load jobs through the company check", () => {
+  it("job actions call the API as the signed-in user (the API scopes company accounts)", () => {
     const jobs = exportedFunctions(read("actions/jobs.ts"));
-    for (const fn of ["duplicateJob", "closeJobNow", "setJobStatus", "deleteJob", "approveJob", "rejectJob"]) {
-      expect(jobs.get(fn), fn).toMatch(/loadJob\(user, /);
+    for (const [fn, body] of jobs) {
+      expect(body, fn).toMatch(/apiFetch[<(]/);
+      expect(body, `${fn} must send the user's token`).not.toMatch(/auth: false/);
     }
-    expect(jobs.get("saveJob")).toMatch(/canAccessJob\(user, /);
-    expect(jobs.get("bulkJobs")).toMatch(/jobScope\(user\)/);
     for (const fn of ["approveJob", "rejectJob"]) expect(jobs.get(fn), fn).toMatch(/requireStaff\(\)/);
   });
 
@@ -86,9 +85,20 @@ describe("server-side authorization", () => {
     for (const [fn, body] of exportedFunctions(read("actions/companies.ts"))) expect(body, fn).toMatch(/requireSuperAdmin\(\)/);
   });
 
-  it("invite creation is not a Server Action (it has no permission check of its own)", () => {
-    expect(readFileSync(path.join(process.cwd(), "src/lib/auth/invites.ts"), "utf8")).toMatch(/^import "server-only";/);
-    for (const file of actionFiles) expect(readFileSync(file, "utf8"), file).not.toMatch(/export async function createInvite/);
+  it("only sign-in, sign-out and invite links call the API without the user's token", () => {
+    const allowed = new Set(["actions/auth.ts", "actions/users.ts", "(auth)/invite/[token]/page.tsx"]);
+    for (const file of files(root, /\.tsx?$/)) {
+      const rel = path.relative(root, file);
+      if (readFileSync(file, "utf8").includes("auth: false")) expect(allowed, rel).toContain(rel);
+    }
+    const users = exportedFunctions(read("actions/users.ts"));
+    for (const [fn, body] of users) if (fn !== "acceptInvite") expect(body, fn).not.toMatch(/auth: false/);
+  });
+
+  it("nothing in the admin talks to a database", () => {
+    for (const file of files(path.join(process.cwd(), "src"), /\.tsx?$/)) {
+      expect(readFileSync(file, "utf8"), file).not.toMatch(/from "(drizzle-orm[^"]*|pg|@neondatabase\/serverless|@\/db[^"]*)"/);
+    }
   });
 
   it("every API route handler is staff-only", () => {
@@ -109,11 +119,5 @@ describe("server-side authorization", () => {
       expect(source, page).toMatch(GUARD);
       if (!COMPANY_PAGES.has(page)) expect(source, `${page} must be staff-only`).toMatch(/await (requireStaff|requireSuperAdmin)\(/);
     }
-  });
-
-  it("company-visible job pages scope their data to the signed-in user", () => {
-    expect(read("(admin)/jobs/page.tsx")).toMatch(/listJobs\(user, /);
-    expect(read("(admin)/jobs/page.tsx")).toMatch(/jobStatusCounts\(user\)/);
-    expect(read("(admin)/jobs/[slug]/page.tsx")).toMatch(/getJob\(slug, user\)/);
   });
 });

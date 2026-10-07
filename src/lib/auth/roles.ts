@@ -1,4 +1,4 @@
-import type { Role } from "@/db/schema";
+import type { Role } from "@/lib/api/types";
 
 /**
  * Role rules shared by server and client code (no server-only imports here).

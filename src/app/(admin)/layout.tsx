@@ -1,15 +1,12 @@
-import { count, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { CommandPalette } from "@/components/admin/CommandPalette";
 import { GlassShell } from "@/components/admin/Glass";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { Topbar } from "@/components/admin/Topbar";
-import { getDb } from "@/db";
-import { messages } from "@/db/schema";
 import type { NavBadges } from "@/components/admin/nav";
 import { requireUser } from "@/lib/auth/require-user";
 import { isStaff } from "@/lib/auth/roles";
-import { pendingReviewCount } from "@/lib/jobs/queries";
+import { apiFetch } from "@/lib/api/client";
 
 /** The floating glass shell: sidebar + content. Every page inside still checks access itself. */
 export default async function AdminLayout({ children }: LayoutProps<"/">) {
@@ -18,11 +15,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/">) {
   // Staff-only counters; company accounts never query (or see) the inbox.
   const badges: NavBadges = {};
   if (isStaff(user.role)) {
-    const [[{ unread }], pendingJobs] = await Promise.all([
-      getDb().select({ unread: count() }).from(messages).where(eq(messages.read, false)),
-      pendingReviewCount(),
-    ]);
-    Object.assign(badges, { unreadMessages: unread, pendingJobs });
+    Object.assign(badges, await apiFetch<NavBadges>("/dashboard/badges"));
   }
 
   return (

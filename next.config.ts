@@ -18,13 +18,13 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   reactStrictMode: true,
-  serverExternalPackages: ["@node-rs/argon2"],
   experimental: {
     authInterrupts: true,
     serverActions: { bodySizeLimit: "6mb" },
   },
   images: {
     remotePatterns: [
+      { protocol: "https", hostname: "api.careersreads.com", pathname: "/uploads/**" },
       { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
       { protocol: "http", hostname: "localhost" },
     ],

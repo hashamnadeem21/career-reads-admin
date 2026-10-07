@@ -1,24 +1,40 @@
-import { count, desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GlassPanel, PageHeader } from "@/components/admin/Glass";
 import { Inbox } from "@/components/messages/Inbox";
 import { SubscribersTable } from "@/components/messages/SubscribersTable";
-import { getDb } from "@/db";
-import { messages, subscribers } from "@/db/schema";
+import { apiFetch } from "@/lib/api/client";
 import { requireStaff } from "@/lib/auth/require-user";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Messages" };
 
+interface InboxRow {
+  id: number;
+  name: string;
+  email: string;
+  topic: string | null;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
+interface SubscriberRow {
+  id: number;
+  email: string;
+  confirmed: boolean;
+  createdAt: string;
+}
+
 export default async function MessagesPage({ searchParams }: PageProps<"/messages">) {
   await requireStaff();
   const tab = (await searchParams).tab === "subscribers" ? "subscribers" : "messages";
-  const db = getDb();
-  const [[{ unread }], [{ subs }]] = await Promise.all([
-    db.select({ unread: count() }).from(messages).where(eq(messages.read, false)),
-    db.select({ subs: count() }).from(subscribers),
-  ]);
+  // Each list comes with both tab counts.
+  const data =
+    tab === "messages"
+      ? { kind: "messages" as const, ...(await apiFetch<{ items: InboxRow[]; unread: number; subscribers: number }>("/messages")) }
+      : { kind: "subscribers" as const, ...(await apiFetch<{ items: SubscriberRow[]; unread: number; subscribers: number }>("/subscribers")) };
+  const { unread, subscribers: subs } = data;
 
   const tabs = [
     { key: "messages", label: "Messages", badge: unread },
@@ -42,28 +58,10 @@ export default async function MessagesPage({ searchParams }: PageProps<"/message
         ))}
       </nav>
       <GlassPanel className="rise-in">
-        {tab === "messages" ? (
-          <Inbox
-            messages={(await db.select().from(messages).orderBy(desc(messages.createdAt)).limit(200)).map((m) => ({
-              id: m.id,
-              name: m.name,
-              email: m.email,
-              topic: m.topic,
-              message: m.message,
-              read: m.read,
-              createdAt: m.createdAt.toISOString(),
-            }))}
-          />
+        {data.kind === "messages" ? (
+          <Inbox messages={data.items} />
         ) : (
-          <SubscribersTable
-            total={subs}
-            rows={(await db.select().from(subscribers).orderBy(desc(subscribers.createdAt)).limit(500)).map((s) => ({
-              id: s.id,
-              email: s.email,
-              confirmed: s.confirmed,
-              createdAt: s.createdAt.toISOString(),
-            }))}
-          />
+          <SubscribersTable total={subs} rows={data.items} />
         )}
       </GlassPanel>
     </>

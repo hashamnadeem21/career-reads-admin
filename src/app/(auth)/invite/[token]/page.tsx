@@ -1,27 +1,24 @@
-import { and, eq, gt } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AcceptInviteForm } from "@/components/auth/AcceptInviteForm";
 import { Badge } from "@/components/admin/Badge";
 import { Logo } from "@/components/admin/Logo";
-import { getDb } from "@/db";
-import { companies, invites } from "@/db/schema";
+import { apiGetOrNull } from "@/lib/api/client";
+import type { Role } from "@/lib/api/types";
 import { roleLabels } from "@/lib/auth/roles";
-import { hashToken } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Accept invite" };
 
 export default async function InvitePage({ params }: PageProps<"/invite/[token]">) {
   const { token } = await params;
-  const [invite] =
+  const found =
     token.length >= 20 && token.length <= 100
-      ? await getDb()
-          .select({ email: invites.email, name: invites.name, role: invites.role, companyName: companies.name })
-          .from(invites)
-          .leftJoin(companies, eq(companies.id, invites.companyId))
-          .where(and(eq(invites.tokenHash, hashToken(token)), gt(invites.expiresAt, new Date())))
-          .limit(1)
-      : [];
+      ? await apiGetOrNull<{ invite: { email: string; name: string; role: Role; companyName: string | null } }>(
+          `/invites/${encodeURIComponent(token)}`,
+          { auth: false },
+        )
+      : null;
+  const invite = found?.invite;
   return (
     <main id="main" className="flex min-h-dvh items-center justify-center p-4">
       <div className="glass rise-in w-full max-w-[420px] p-7 sm:p-8">

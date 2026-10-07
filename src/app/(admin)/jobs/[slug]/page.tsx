@@ -18,7 +18,7 @@ import { formatNumber } from "@/lib/utils";
 
 export async function generateMetadata({ params }: PageProps<"/jobs/[slug]">): Promise<Metadata> {
   const user = await getCurrentUser();
-  const job = user ? await getJob((await params).slug, user) : null;
+  const job = user ? await getJob((await params).slug) : null;
   return { title: job ? `Edit: ${job.title}` : "Job not found" };
 }
 
@@ -29,7 +29,7 @@ export default async function EditJobPage({ params }: PageProps<"/jobs/[slug]">)
   const user = await requireUser();
   const isCompany = user.role === "company";
   const { slug } = await params;
-  const job = await getJob(slug, user);
+  const job = await getJob(slug);
   if (!job) notFound();
   const [categories, stats, companies, owner] = await Promise.all([
     getJobCategories(),

@@ -1,4 +1,4 @@
-// Copied from blognest/src/lib/content/toc.ts by scripts/sync-shared.mjs. Do not edit here: change the site, then re-run `npm run sync:shared`.
+// Copied from blognest-api/src/shared/content/toc.ts by scripts/sync-shared.mjs. Do not edit here: change the API, then re-run `npm run sync:shared`.
 import GithubSlugger from "github-slugger";
 import type { ArticleImage, TocItem } from "./schema";
 

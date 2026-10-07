@@ -10,4 +10,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Project
 
-BlogNest admin panel: a separate Next.js 16 app that shares a Postgres database with the public site (`../blognest`). Read `docs/ADMIN_PANEL_PLAN.md` and `docs/ADMIN_DESIGN.md` before any work.
+Career Reads admin panel: a separate Next.js 16 app with no database. It calls the Career Reads API (`../blognest-api`) for everything; see README "How it connects". Read `docs/ADMIN_PANEL_PLAN.md` and `docs/ADMIN_DESIGN.md` before any work.

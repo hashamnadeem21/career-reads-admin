@@ -114,14 +114,3 @@ describe("image placement", () => {
     ]);
   });
 });
-
-describe("checkMdxBody", async () => {
-  const { checkMdxBody } = await import("@/lib/posts/mdx-check");
-  it("accepts normal Markdown with site components", async () => {
-    expect(await checkMdxBody('## Heading\n\n<Callout type="tip">Hi</Callout>\n\n<Figure src="/a.png" alt="An image" width={10} height={10} />')).toBeNull();
-  });
-  it("rejects code and broken syntax with a readable message", async () => {
-    expect(await checkMdxBody("Secret: {process.env.DATABASE_URL}")).toMatch(/Curly-brace/);
-    expect(await checkMdxBody("<Callout>unclosed")).toMatch(/formatting problem/);
-  });
-});

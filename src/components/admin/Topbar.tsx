@@ -5,7 +5,7 @@ import { Bell, Briefcase, FileText, FolderTree, Plus, Search, SlidersHorizontal,
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import type { Role } from "@/db/schema";
+import type { Role } from "@/lib/api/types";
 import { isStaff } from "@/lib/auth/roles";
 import type { SessionUser } from "@/lib/auth/session";
 import { firstName } from "@/lib/utils";

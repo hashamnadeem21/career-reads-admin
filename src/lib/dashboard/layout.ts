@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { DashboardLayout } from "@/db/schema";
+import type { DashboardLayout } from "@/lib/api/types";
 
 /** Every dashboard card a user can show, hide and reorder in Customize. */
 export const DASHBOARD_CARDS = [

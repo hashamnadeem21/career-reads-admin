@@ -1,22 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateTemporaryPassword, hashPassword, verifyPassword } from "@/lib/auth/password";
 import { slugify, timeAgo } from "@/lib/utils";
-
-describe("passwords", () => {
-  it("hashes with argon2 and verifies", async () => {
-    const hash = await hashPassword("correct horse battery staple");
-    expect(hash).toMatch(/^\$argon2id\$/);
-    expect(await verifyPassword(hash, "correct horse battery staple")).toBe(true);
-    expect(await verifyPassword(hash, "wrong")).toBe(false);
-    expect(await verifyPassword("not-a-hash", "x")).toBe(false);
-  });
-
-  it("generates readable, unique temporary passwords", () => {
-    const a = generateTemporaryPassword();
-    expect(a).toMatch(/^[a-z2-9]{4}(-[a-z2-9]{4}){3}$/);
-    expect(generateTemporaryPassword()).not.toBe(a);
-  });
-});
 
 describe("utils", () => {
   it("slugifies titles", () => {

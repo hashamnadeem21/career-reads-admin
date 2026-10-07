@@ -1,6 +1,6 @@
-// Copied from blognest/src/lib/jobs/schema.ts by scripts/sync-shared.mjs. Do not edit here: change the site, then re-run `npm run sync:shared`.
+// Copied from blognest-api/src/shared/jobs/schema.ts by scripts/sync-shared.mjs. Do not edit here: change the API, then re-run `npm run sync:shared`.
 import { z } from "zod";
-import { SLUG_PATTERN } from "@/shared/content/schema";
+import { SLUG_PATTERN } from "../content/schema";
 import { EMPLOYMENT_TYPES, EXPERIENCE_LEVELS, WORK_MODELS } from "./categories";
 
 const isoDate = z

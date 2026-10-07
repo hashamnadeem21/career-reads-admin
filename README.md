@@ -49,12 +49,12 @@ blognest-admin ──Server Actions / pages──▶ blognest-api ──▶ Post
 
 ## Deploying (Vercel)
 
-1. Deploy the API first (see its README and go-live checklist). Production API: `https://api-careersreads.com`.
+1. Deploy the API first (see its README and go-live checklist). Production API: `https://api.careersreads.com`.
 2. Environment variables for this project:
 
    | Variable | Required | What it is |
    | --- | --- | --- |
-   | `API_URL` | No | The API. Vercel production deployments default to `https://api-careersreads.com`; elsewhere `http://localhost:4000` |
+   | `API_URL` | No | The API. Vercel production deployments default to `https://api.careersreads.com`; elsewhere `http://localhost:4000` |
    | `ADMIN_API_KEY` | Yes | Same value as `ADMIN_API_KEY` in the API |
    | `PUBLIC_SITE_URL` | Yes | The website, e.g. `https://www.careersreads.com` ("View on site" links, image previews) |
 

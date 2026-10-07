@@ -13,7 +13,7 @@ const PUBLIC_PATHS = ["/login", "/invite"];
 function apiUrl(): string {
   const configured = process.env.API_URL?.trim();
   if (configured) return configured.replace(/\/+$/, "");
-  return process.env.VERCEL_ENV === "production" ? "https://api-careersreads.com" : "http://localhost:4000";
+  return process.env.VERCEL_ENV === "production" ? "https://api.careersreads.com" : "http://localhost:4000";
 }
 
 async function refresh(request: NextRequest, refreshToken: string): Promise<SignedIn | null> {

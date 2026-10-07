@@ -8,7 +8,7 @@ const emptyToUndefined = (value: unknown) => (typeof value === "string" && value
 const optional = <T extends z.ZodType>(schema: T) => z.preprocess(emptyToUndefined, schema.optional());
 
 /** The Career Reads API in production, used when API_URL isn't set on a Vercel production deployment. */
-export const PRODUCTION_API_URL = "https://api-careersreads.com";
+export const PRODUCTION_API_URL = "https://api.careersreads.com";
 
 const envSchema = z.object({
   /** The Career Reads API (blognest-api). The admin has no database of its own. */

@@ -41,7 +41,7 @@ export function StatCard({
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
             <DropdownMenu.Content align="end" sideOffset={6} className="glass-strong z-50 min-w-40 !rounded-xl p-1 text-sm text-ink">
-              <DropdownMenu.Item asChild className="block cursor-pointer rounded-lg px-3 py-2 outline-none data-[highlighted]:bg-hover">
+              <DropdownMenu.Item asChild className="block cursor-pointer rounded-lg px-3 py-2 outline-none focus-visible:shadow-none data-[highlighted]:bg-hover">
                 <Link href={href}>{hrefLabel}</Link>
               </DropdownMenu.Item>
             </DropdownMenu.Content>

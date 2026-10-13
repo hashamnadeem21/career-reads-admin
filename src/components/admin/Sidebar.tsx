@@ -115,14 +115,14 @@ export function UserCard({ user, rail }: { user: SessionUser; rail?: boolean }) 
             </p>
           </div>
           <DropdownMenu.Separator className="my-1 h-px bg-divider" />
-          <DropdownMenu.Item asChild className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm outline-none data-[highlighted]:bg-hover">
+          <DropdownMenu.Item asChild className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm outline-none focus-visible:shadow-none data-[highlighted]:bg-hover">
             <Link href="/account/password">
               <KeyRound className="h-4 w-4" /> Change password
             </Link>
           </DropdownMenu.Item>
           <DropdownMenu.Item
             onSelect={() => void logout()}
-            className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm text-danger outline-none data-[highlighted]:bg-danger-soft"
+            className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm text-danger outline-none focus-visible:shadow-none data-[highlighted]:bg-danger-soft"
           >
             <LogOut className="h-4 w-4" /> Sign out
           </DropdownMenu.Item>

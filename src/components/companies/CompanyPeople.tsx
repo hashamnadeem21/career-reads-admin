@@ -58,9 +58,9 @@ function InviteCompanyUser({ companyId, companyName, disabled }: { companyId: st
       {link ? (
         <div className="flex flex-col gap-3">
           <p className="text-sm">Send this link to {v.name}. It works once and expires in 7 days.</p>
-          <div className="glass-inset flex items-center gap-2 p-2">
+          <div className="glass-inset flex items-center gap-2 p-2 focus-within:shadow-[0_0_0_4px_var(--primary-glow)]">
             <Link2 className="h-4 w-4 shrink-0 text-muted" aria-hidden />
-            <input readOnly value={link} aria-label="Invite link" className="min-w-0 flex-1 bg-transparent text-xs outline-none" onFocus={(e) => e.target.select()} />
+            <input readOnly value={link} aria-label="Invite link" className="min-w-0 flex-1 bg-transparent text-xs outline-none focus-visible:shadow-none" onFocus={(e) => e.target.select()} />
             <Button
               size="sm"
               onClick={async () => {

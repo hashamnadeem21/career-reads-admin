@@ -149,7 +149,7 @@ export function DataTable<T>({
                 data-row
                 tabIndex={0}
                 onKeyDown={(e) => onRowKey(e, index, href)}
-                className={cn("group outline-none focus-visible:[&>td]:bg-primary-soft", isSelected && "[&>td]:bg-primary-soft")}
+                className={cn("group outline-none focus-visible:shadow-none focus-visible:[&>td]:bg-primary-soft", isSelected && "[&>td]:bg-primary-soft")}
               >
                 {bulkActions && (
                   <td className="rounded-l-xl px-3 py-3 group-hover:bg-hover">

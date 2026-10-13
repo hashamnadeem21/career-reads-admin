@@ -163,7 +163,7 @@ export function BulletListInput({
               }
               onKeyDown={(e) => onKeyDown(e, index)}
               onPaste={(e) => onPaste(e, index)}
-              className="min-w-0 flex-1 resize-none overflow-hidden bg-transparent leading-relaxed text-ink placeholder:text-faint focus:outline-none"
+              className="min-w-0 flex-1 resize-none overflow-hidden bg-transparent leading-relaxed text-ink placeholder:text-faint focus-visible:shadow-none focus-visible:outline-none"
             />
           </li>
         ))}

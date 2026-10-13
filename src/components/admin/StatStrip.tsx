@@ -1,10 +1,14 @@
 import type { LucideIcon } from "lucide-react";
+import type { CSSProperties } from "react";
 import { GlassInset } from "./Glass";
 
 /** The darker inset bar of key numbers (job: views · apply clicks · days left). */
 export function StatStrip({ items }: { items: { icon: LucideIcon; label: string; value: string }[] }) {
   return (
-    <GlassInset className="mb-5 grid grid-cols-1 divide-y divide-divider sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+    <GlassInset
+      className="mb-5 grid grid-cols-1 divide-y divide-divider sm:grid-cols-[repeat(var(--stat-count),minmax(0,1fr))] sm:divide-x sm:divide-y-0"
+      style={{ "--stat-count": items.length } as CSSProperties}
+    >
       {items.map(({ icon: Icon, label, value }) => (
         <div key={label} className="flex items-center gap-3 px-4 py-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-link" aria-hidden>

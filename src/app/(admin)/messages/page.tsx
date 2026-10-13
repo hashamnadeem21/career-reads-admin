@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Newspaper } from "lucide-react";
 import Link from "next/link";
+import { buttonClasses } from "@/components/admin/Button";
 import { GlassPanel, PageHeader } from "@/components/admin/Glass";
 import { Inbox } from "@/components/messages/Inbox";
 import { SubscribersTable } from "@/components/messages/SubscribersTable";
@@ -23,6 +25,7 @@ interface SubscriberRow {
   id: number;
   email: string;
   confirmed: boolean;
+  unsubscribedAt: string | null;
   createdAt: string;
 }
 
@@ -43,7 +46,15 @@ export default async function MessagesPage({ searchParams }: PageProps<"/message
 
   return (
     <>
-      <PageHeader title="Messages" description="Contact form messages and newsletter sign-ups from the site." />
+      <PageHeader
+        title="Messages"
+        description="Contact form messages and newsletter sign-ups from the site."
+        actions={
+          <Link href="/newsletters" className={buttonClasses()}>
+            <Newspaper /> Newsletters
+          </Link>
+        }
+      />
       <nav aria-label="Messages sections" className="glass-inset mb-4 inline-flex p-1">
         {tabs.map((t) => (
           <Link

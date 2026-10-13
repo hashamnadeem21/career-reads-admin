@@ -6,9 +6,11 @@ import {
   Image as ImageIcon,
   LayoutDashboard,
   Mail,
+  Newspaper,
   Settings,
   UserRound,
   Users,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/api/types";
@@ -41,6 +43,8 @@ export const mainNav: NavEntry[] = [
   { href: "/authors", label: "Authors", icon: UserRound, roles: STAFF },
   { href: "/media", label: "Media", icon: ImageIcon, roles: STAFF },
   { href: "/messages", label: "Messages", icon: Mail, badgeKey: "unreadMessages", roles: STAFF },
+  { href: "/newsletters", label: "Newsletters", icon: Newspaper, roles: STAFF },
+  { href: "/automations", label: "Automations", icon: Zap, roles: STAFF },
   { href: "/users", label: "Users", icon: Users, roles: SUPER },
 ];
 

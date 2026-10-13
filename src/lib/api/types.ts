@@ -128,3 +128,66 @@ export interface SubscriberRow {
   confirmed: boolean;
   createdAt: Date;
 }
+
+export type NewsletterStatus = "draft" | "scheduled" | "sending" | "sent";
+
+export interface NewsletterRow {
+  id: number;
+  subject: string;
+  previewText: string;
+  /** Markdown. */
+  body: string;
+  status: NewsletterStatus;
+  /** When a scheduled newsletter goes out. */
+  scheduledAt: Date | null;
+  /** Audience: active subscribers who signed up in [from, to). Both null = everyone. */
+  audienceFrom: Date | null;
+  audienceTo: Date | null;
+  recipients: number;
+  sentCount: number;
+  failedCount: number;
+  createdBy: string | null;
+  sentBy: string | null;
+  sentAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/** Lists leave out the body. */
+export type NewsletterListRow = Omit<NewsletterRow, "body">;
+
+export type AutomationTrigger = "subscribed";
+export type AutomationDeliveryStatus = "pending" | "sent" | "failed" | "skipped";
+export type DeliveryStats = Record<AutomationDeliveryStatus, number>;
+
+/** An email sent automatically when something happens (e.g. the welcome email on subscribe). */
+export interface AutomationRow {
+  id: number;
+  name: string;
+  trigger: AutomationTrigger;
+  /** How long after the trigger it's sent (0 = straight away). */
+  delayMinutes: number;
+  subject: string;
+  previewText: string;
+  /** Markdown. */
+  body: string;
+  active: boolean;
+  /** Launch date: triggers before it are ignored. Null = as soon as it's switched on. */
+  startsAt: Date | null;
+  endsAt: Date | null;
+  createdBy: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/** Lists leave out the body and add delivery counts. */
+export type AutomationListRow = Omit<AutomationRow, "body"> & { stats: DeliveryStats };
+
+export interface AutomationDelivery {
+  id: number;
+  email: string;
+  status: AutomationDeliveryStatus;
+  dueAt: Date;
+  sentAt: Date | null;
+  error: string | null;
+}

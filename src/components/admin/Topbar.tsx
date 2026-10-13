@@ -1,7 +1,7 @@
 "use client";
 
 import { DropdownMenu, Popover } from "radix-ui";
-import { Bell, Briefcase, FileText, FolderTree, Plus, Search, SlidersHorizontal, Upload, UserRound } from "lucide-react";
+import { Bell, Briefcase, FileText, FolderTree, Newspaper, Plus, Search, SlidersHorizontal, Upload, UserRound, Zap } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -20,6 +20,8 @@ const newItems = [
   { href: "/categories?new=1", label: "Category", icon: FolderTree, staffOnly: true },
   { href: "/authors?new=1", label: "Author", icon: UserRound, staffOnly: true },
   { href: "/media?upload=1", label: "Upload", icon: Upload, staffOnly: true },
+  { href: "/newsletters/new", label: "Newsletter", icon: Newspaper, staffOnly: true },
+  { href: "/automations/new", label: "Automation", icon: Zap, staffOnly: true },
 ];
 
 const menuItem = "flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-sm outline-none focus-visible:shadow-none data-[highlighted]:bg-hover [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-muted";

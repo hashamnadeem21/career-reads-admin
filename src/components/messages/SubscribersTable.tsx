@@ -16,6 +16,8 @@ export interface SubscriberRow {
   id: number;
   email: string;
   confirmed: boolean;
+  /** Set when they used the unsubscribe link in a newsletter. */
+  unsubscribedAt: string | null;
   createdAt: string;
 }
 
@@ -28,7 +30,7 @@ export function SubscribersTable({ rows, total }: { rows: SubscriberRow[]; total
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="num text-sm text-muted">{total.toLocaleString()} subscribers</p>
+        <p className="num text-sm text-muted">{total.toLocaleString()} active subscribers</p>
         <div className="flex gap-2">
           {selected.length > 0 && (
             <ConfirmDialog
@@ -38,7 +40,7 @@ export function SubscribersTable({ rows, total }: { rows: SubscriberRow[]; total
                 </Button>
               }
               title={`Remove ${selected.length} subscriber${selected.length === 1 ? "" : "s"}?`}
-              description="Use this for unsubscribe requests. It can't be undone."
+              description="For people who ask to have their data deleted. Subscribers can unsubscribe themselves from any newsletter. This can't be undone."
               confirmLabel="Remove"
               onConfirm={async () => {
                 const r = await deleteSubscribers(selected);
@@ -74,7 +76,11 @@ export function SubscribersTable({ rows, total }: { rows: SubscriberRow[]; total
               </td>
               <td className="max-w-0 truncate px-3 py-2.5 font-medium group-hover:bg-hover">{r.email}</td>
               <td className="hidden px-3 py-2.5 group-hover:bg-hover sm:table-cell">
-                <Badge tone={r.confirmed ? "success" : "neutral"}>{r.confirmed ? "Confirmed" : "Pending"}</Badge>
+                {r.unsubscribedAt ? (
+                  <Badge tone="neutral">Unsubscribed {formatDate(r.unsubscribedAt)}</Badge>
+                ) : (
+                  <Badge tone="success">Subscribed</Badge>
+                )}
               </td>
               <td className="whitespace-nowrap px-3 py-2.5 text-muted group-hover:bg-hover">{formatDate(r.createdAt)}</td>
             </tr>

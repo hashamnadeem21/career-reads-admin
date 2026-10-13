@@ -18,6 +18,8 @@ export interface StatSummary {
 
 export interface TrafficPoint {
   day: string;
+  /** People who opened the site (once per browser tab session). Not sent for company dashboards. */
+  visits?: number;
   views: number;
   applies: number;
 }
@@ -69,6 +71,8 @@ export interface Dashboard {
   stats: { posts: StatSummary; jobs: StatSummary; subscribers: StatSummary; unreadMessages: StatSummary };
   /** 365 daily points; the traffic card buckets them by range. */
   traffic: { points: TrafficPoint[]; total: number };
+  /** Tabs open on the public site right now. */
+  onlineNow: number;
   topCategories: { slug: string; name: string; value: number }[];
   mix: { posts: MixSlice[]; jobs: MixSlice[] };
   recent: ContentRow[];
@@ -82,6 +86,11 @@ export interface Dashboard {
 /** Everything the staff dashboard shows, in one request. */
 export function getDashboard(): Promise<Dashboard> {
   return apiFetch<Dashboard>("/dashboard");
+}
+
+/** People on the public site right now (the dashboard polls this). */
+export function getOnlineNow(): Promise<{ onlineNow: number }> {
+  return apiFetch("/dashboard/live");
 }
 
 /** One page (30) of the activity log, newest first. */

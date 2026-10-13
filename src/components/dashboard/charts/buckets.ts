@@ -6,11 +6,13 @@ export const RANGES: Range[] = ["12M", "6M", "30D", "7D"];
 export interface Bucket {
   key: string;
   label: string;
+  visits: number;
   views: number;
   applies: number;
   /** Fraction of the bucket that has happened (1 = complete). */
   elapsed: number;
   /** Extrapolated totals for an incomplete last bucket, drawn dashed. */
+  projectedVisits?: number;
   projectedViews?: number;
   projectedApplies?: number;
 }
@@ -22,7 +24,7 @@ const dayFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short"
 export function toBuckets(points: TrafficPoint[], range: Range, today = new Date()): Bucket[] {
   if (range === "30D" || range === "7D") {
     const n = range === "30D" ? 30 : 7;
-    return points.slice(-n).map((p) => ({ key: p.day, label: dayFmt.format(new Date(p.day)), views: p.views, applies: p.applies, elapsed: 1 }));
+    return points.slice(-n).map((p) => ({ key: p.day, label: dayFmt.format(new Date(p.day)), visits: p.visits ?? 0, views: p.views, applies: p.applies, elapsed: 1 }));
   }
 
   const byKey = new Map<string, Bucket>();
@@ -40,7 +42,8 @@ export function toBuckets(points: TrafficPoint[], range: Range, today = new Date
       key = monday.toISOString().slice(0, 10);
       label = dayFmt.format(monday);
     }
-    const bucket = byKey.get(key) ?? { key, label, views: 0, applies: 0, elapsed: 1 };
+    const bucket = byKey.get(key) ?? { key, label, visits: 0, views: 0, applies: 0, elapsed: 1 };
+    bucket.visits += p.visits ?? 0;
     bucket.views += p.views;
     bucket.applies += p.applies;
     byKey.set(key, bucket);
@@ -58,9 +61,11 @@ export function toBuckets(points: TrafficPoint[], range: Range, today = new Date
     const elapsed = Math.min(1, Math.max(1 / 31, (today.getTime() - start.getTime()) / (end.getTime() - start.getTime())));
     last.elapsed = elapsed;
     if (elapsed < 1 && buckets.length > 1) {
+      last.projectedVisits = Math.round(last.visits / elapsed);
       last.projectedViews = Math.round(last.views / elapsed);
       last.projectedApplies = Math.round(last.applies / elapsed);
       const prev = buckets[buckets.length - 2];
+      prev.projectedVisits = prev.visits;
       prev.projectedViews = prev.views;
       prev.projectedApplies = prev.applies;
     }
@@ -68,7 +73,10 @@ export function toBuckets(points: TrafficPoint[], range: Range, today = new Date
   return buckets;
 }
 
-export function toCsv(buckets: Bucket[]): string {
-  const rows = [["period", "page_views", "apply_clicks"], ...buckets.map((b) => [b.key, String(b.views), String(b.applies)])];
+/** `withVisits` adds a site_visits column (the staff dashboard; company dashboards have none). */
+export function toCsv(buckets: Bucket[], withVisits = false): string {
+  const rows = withVisits
+    ? [["period", "site_visits", "page_views", "apply_clicks"], ...buckets.map((b) => [b.key, String(b.visits), String(b.views), String(b.applies)])]
+    : [["period", "page_views", "apply_clicks"], ...buckets.map((b) => [b.key, String(b.views), String(b.applies)])];
   return rows.map((r) => r.join(",")).join("\n");
 }

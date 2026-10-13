@@ -43,6 +43,15 @@ describe("traffic buckets", () => {
   it("exports CSV", () => {
     expect(toCsv(toBuckets(points, "7D")).split("\n")[0]).toBe("period,page_views,apply_clicks");
   });
+
+  it("adds site visits when the points have them", () => {
+    const withVisits = points.map((p) => ({ ...p, visits: 2 }));
+    const buckets = toBuckets(withVisits, "12M", new Date("2026-10-02T12:00:00Z"));
+    expect(buckets.at(-2)).toMatchObject({ key: "2026-09", visits: 60 });
+    expect(buckets.at(-1)?.projectedVisits).toBeGreaterThan(buckets.at(-1)?.visits ?? 0);
+    expect(toCsv(toBuckets(withVisits, "7D"), true).split("\n")[0]).toBe("period,site_visits,page_views,apply_clicks");
+    expect(toBuckets(points, "7D")[0].visits).toBe(0);
+  });
 });
 
 describe("content mix", () => {

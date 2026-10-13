@@ -7,6 +7,7 @@ import { ProgressList } from "@/components/dashboard/ProgressList";
 import { DashboardRail } from "@/components/dashboard/Rail";
 import { RecentTable } from "@/components/dashboard/RecentTable";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { OnlineNow } from "@/components/dashboard/OnlineNow";
 import { TrafficCard } from "@/components/dashboard/TrafficCard";
 import { WorkList } from "@/components/dashboard/WorkList";
 import { requireUser } from "@/lib/auth/require-user";
@@ -20,7 +21,7 @@ export default async function DashboardPage() {
   if (user.role === "company" && user.companyId) {
     return <CompanyDashboard companyId={user.companyId} companyName={user.companyName ?? "Your company"} />;
   }
-  const { stats, traffic, topCategories, mix, recent, lists, featured, activity, layout } = await getDashboard();
+  const { stats, traffic, onlineNow, topCategories, mix, recent, lists, featured, activity, layout } = await getDashboard();
 
   const statCards = (
     <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-4 [&>*]:w-[78vw] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto">
@@ -40,7 +41,7 @@ export default async function DashboardPage() {
         mix={mix}
         cards={{
           stats: statCards,
-          traffic: <TrafficCard points={traffic.points} total={traffic.total} />,
+          traffic: <TrafficCard points={traffic.points} total={traffic.total} live={<OnlineNow key="online-now" initial={onlineNow} />} />,
           "top-categories": (
             <ProgressList
               title="Top job categories"

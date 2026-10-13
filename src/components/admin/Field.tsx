@@ -160,7 +160,7 @@ export function Switch({
         defaultChecked={defaultChecked}
         onCheckedChange={onCheckedChange}
         disabled={disabled}
-        className="relative h-6 w-11 shrink-0 cursor-pointer rounded-full border border-glass-border bg-inset transition-colors data-[state=checked]:border-primary data-[state=checked]:bg-primary disabled:opacity-50"
+        className="relative h-6 w-11 shrink-0 cursor-pointer rounded-full border border-glass-border bg-ink/15 transition-colors data-[state=checked]:border-primary data-[state=checked]:bg-primary disabled:opacity-50"
       >
         <RadixSwitch.Thumb className="block h-5 w-5 translate-x-0.5 rounded-full bg-white shadow transition-transform data-[state=checked]:translate-x-[22px]" />
       </RadixSwitch.Root>

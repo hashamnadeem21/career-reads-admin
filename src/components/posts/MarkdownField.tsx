@@ -39,11 +39,44 @@ const insertBlock = (snippet: string): Edit => (text, start) => {
   return { text: next, start: caret, end: caret };
 };
 
+export interface PickedImage {
+  url: string;
+  alt: string;
+  width: number;
+  height: number;
+}
+
+/** Posts place images with the site's MDX <Figure> (real width and height, no layout shift). */
+const figureSnippet = (img: PickedImage) =>
+  `<Figure src="${img.url}" alt="${(img.alt || "Describe this image").replace(/"/g, "'")}" width={${img.width}} height={${img.height}} />`;
+
 /** Markdown/MDX textarea with a formatting toolbar. Large, calm, readable. */
 export const MarkdownField = forwardRef<
   MarkdownFieldHandle,
-  { value: string; onChange: (value: string) => void; invalid?: boolean; describedBy?: string; toolbarExtra?: ReactNode }
->(function MarkdownField({ value, onChange, invalid, describedBy, toolbarExtra }, ref) {
+  {
+    value: string;
+    onChange: (value: string) => void;
+    invalid?: boolean;
+    describedBy?: string;
+    toolbarExtra?: ReactNode;
+    /** What the image button inserts (plain Markdown where MDX isn't rendered, e.g. emails). */
+    imageSnippet?: (img: PickedImage) => string;
+    label?: string;
+    placeholder?: string;
+  }
+>(function MarkdownField(
+  {
+    value,
+    onChange,
+    invalid,
+    describedBy,
+    toolbarExtra,
+    imageSnippet = figureSnippet,
+    label = "Post body (Markdown)",
+    placeholder = "Write your post in Markdown.\n\n## Use headings for sections\n\nImages from the Images tab are placed automatically.",
+  },
+  ref,
+) {
   const area = useRef<HTMLTextAreaElement>(null);
   useImperativeHandle(ref, () => ({ focus: () => area.current?.focus() }));
 
@@ -82,9 +115,7 @@ export const MarkdownField = forwardRef<
         ))}
         <MediaPicker
           title="Insert an image"
-          onSelect={(img) =>
-            apply(insertBlock(`<Figure src="${img.url}" alt="${(img.alt || "Describe this image").replace(/"/g, "'")}" width={${img.width}} height={${img.height}} />`))
-          }
+          onSelect={(img) => apply(insertBlock(imageSnippet(img)))}
           trigger={
             <Button variant="ghost" size="icon-sm" aria-label="Insert image">
               <ImagePlus />
@@ -105,11 +136,11 @@ export const MarkdownField = forwardRef<
             apply(e.key === "b" ? wrap("**") : wrap("_"));
           }
         }}
-        aria-label="Post body (Markdown)"
+        aria-label={label}
         aria-invalid={invalid || undefined}
         aria-describedby={describedBy}
         spellCheck
-        placeholder={"Write your post in Markdown.\n\n## Use headings for sections\n\nImages from the Images tab are placed automatically."}
+        placeholder={placeholder}
         className="admin-scroll min-h-[60vh] w-full resize-y bg-transparent px-5 py-4 font-mono text-[15px] leading-7 text-ink outline-none placeholder:text-faint focus-visible:shadow-none focus-visible:outline-none"
       />
     </div>

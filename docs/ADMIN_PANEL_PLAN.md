@@ -134,6 +134,8 @@ The admin app has its own domain, so routes start at `/`:
 /authors               Authors
 /media                 Image library + upload
 /messages              Contact messages + subscribers (CSV export)
+/newsletters           Write, preview, test, send or schedule newsletters to subscribers
+/automations           Emails sent automatically on a trigger (welcome email on subscribe)
 /settings              Ads, site info, social links   (admin only)
 /users                 Invite / change role / remove  (admin only)
 /design                Style guide                    (dev only)
@@ -281,3 +283,12 @@ These are **not committed**: they sit on top of your existing uncommitted work s
 - `src/lib/forms/store.ts` and `src/app/actions.ts` (contact messages and sign-ups are saved to the database too)
 - Categories, ads and contact settings: `src/lib/categories.ts`, `src/lib/jobs/categories.ts`, `src/lib/ads.ts`, `src/lib/site.ts`, schemas, and pages that load them
 - `next.config.ts` (`distDir` override for test builds, Blob image host), `.env.example` (new), README env table, unit tests
+
+### Newsletters (added after launch)
+
+- `/newsletters` lists newsletters; `/newsletters/new` and `/newsletters/[id]` open the editor (subject, inbox preview text, Markdown body, live email preview rendered by the API). Sent ones show a delivery report (recipients, delivered, failed, why) that refreshes while sending.
+- Staff write drafts and send themselves tests; **only super admins send to subscribers**. The API (`blognest-api/src/newsletters/`) does the sending through Resend, and every email has an unsubscribe link. See the API's `docs/API_SPLIT_PLAN.md` for setup.
+- **Send or schedule** (`SendDialog`): send now or pick a date and time (quick picks; the admin's own timezone), to every subscriber or to people who subscribed between two dates, with a live count. Scheduled newsletters stay editable, show a "Goes out …" banner, and can be unscheduled. The API's every-minute scheduler sends them.
+- **Automations** (`/automations`): cards with the trigger summary ("3 days after someone subscribes"), counts and an on/off switch (super admins). The editor (`AutomationEditor`) sets the name, trigger, delay, optional launch and end dates and the email, with the same live preview and test send as newsletters, plus an activity section (sent / waiting / failed / skipped, failure reasons, retry, latest 25 emails). A "Welcome email" is created switched off.
+- Shared pieces: `EmailFields`, `useLivePreview` / `useUnsavedWarning` / `useSaveShortcut` (`use-email-editor.ts`), `TestSendDialog`, `ChoiceCards`, `LocalTime`, and `src/lib/local-time.ts` (dates picked in the browser's timezone, sent to the API as UTC).
+- The Subscribers tab shows who unsubscribed; counts include active subscribers only.

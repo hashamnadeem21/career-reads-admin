@@ -73,7 +73,7 @@ export function FeaturedJobCard({ job }: { job: { slug: string; title: string; c
   );
 }
 
-const important = new Set(["published", "deleted", "role changed", "removed", "invited"]);
+const important = new Set(["published", "deleted", "role changed", "removed", "invited", "sent", "scheduled", "activated"]);
 
 export function ActivityFeed({ items, compact }: { items: ActivityItem[]; compact?: boolean }) {
   if (items.length === 0) {

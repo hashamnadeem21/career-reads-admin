@@ -32,6 +32,11 @@ export function timeAgo(value: string | Date, now: Date = new Date()): string {
   return formatDate(date);
 }
 
+/** A numeric route segment (`/newsletters/12` → 12); anything else → null. */
+export function parseRouteId(value: string): number | null {
+  return /^\d{1,9}$/.test(value) && Number(value) > 0 ? Number(value) : null;
+}
+
 export function firstName(name: string): string {
   return name.trim().split(/\s+/)[0] ?? name;
 }

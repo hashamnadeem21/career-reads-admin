@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, LineChart } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/admin/Button";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { PanelHeader } from "@/components/admin/Glass";
@@ -15,21 +15,28 @@ export function TrafficCard({
   points,
   total,
   title = "Traffic & engagement",
-  description = "Article and job page views, and Apply button clicks",
+  description = "Site visits, article and job page views, and Apply button clicks",
   fileName = "blognest-traffic",
+  live,
 }: {
   points: TrafficPoint[];
   total: number;
   title?: string;
   description?: string;
   fileName?: string;
+  /** Shown before the range tabs (the staff dashboard's "Online now"). */
+  live?: ReactNode;
 }) {
   const [range, setRange] = useState<Range>("30D");
   const buckets = useMemo(() => toBuckets(points, range), [points, range]);
-  const totals = buckets.reduce((t, b) => ({ views: t.views + b.views, applies: t.applies + b.applies }), { views: 0, applies: 0 });
+  const withVisits = points.some((p) => p.visits !== undefined);
+  const totals = buckets.reduce(
+    (t, b) => ({ visits: t.visits + b.visits, views: t.views + b.views, applies: t.applies + b.applies }),
+    { visits: 0, views: 0, applies: 0 },
+  );
 
   const exportCsv = () => {
-    const blob = new Blob([toCsv(buckets)], { type: "text/csv" });
+    const blob = new Blob([toCsv(buckets, withVisits)], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = Object.assign(document.createElement("a"), { href: url, download: `${fileName}-${range.toLowerCase()}.csv` });
     a.click();
@@ -44,6 +51,7 @@ export function TrafficCard({
         description={description}
         actions={
           <>
+            {live}
             <div role="radiogroup" aria-label="Date range" className="glass-inset flex p-1">
               {RANGES.map((r) => (
                 <button
@@ -68,10 +76,17 @@ export function TrafficCard({
         }
       />
       {total === 0 ? (
-        <EmptyState icon={LineChart} title="Stats will appear here after your first visitors" description="Views and Apply clicks are counted on the public site: no cookies, no personal data." className="min-h-[280px]" />
+        <EmptyState icon={LineChart} title="Stats will appear here after your first visitors" description="Visits, views and Apply clicks are counted on the public site: no cookies, no personal data." className="min-h-[280px]" />
       ) : (
         <>
           <ul className="mb-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px]">
+            {withVisits && (
+              <li className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-chart-3" aria-hidden />
+                <span className="text-muted">Site visits</span>
+                <span className="num font-semibold">{formatNumber(totals.visits)}</span>
+              </li>
+            )}
             <li className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-chart-1" aria-hidden />
               <span className="text-muted">Page views</span>
@@ -88,12 +103,13 @@ export function TrafficCard({
               </li>
             )}
           </ul>
-          <TrafficChart buckets={buckets} />
+          <TrafficChart buckets={buckets} withVisits={withVisits} />
           <table className="sr-only">
             <caption>Traffic by period</caption>
             <thead>
               <tr>
                 <th>Period</th>
+                {withVisits && <th>Site visits</th>}
                 <th>Page views</th>
                 <th>Apply clicks</th>
               </tr>
@@ -102,6 +118,7 @@ export function TrafficCard({
               {buckets.map((b) => (
                 <tr key={b.key}>
                   <td>{b.label}</td>
+                  {withVisits && <td>{b.visits}</td>}
                   <td>{b.views}</td>
                   <td>{b.applies}</td>
                 </tr>

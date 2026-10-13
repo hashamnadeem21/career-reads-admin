@@ -4,10 +4,12 @@ import { Area, AreaChart, CartesianGrid, Line, ResponsiveContainer, Tooltip, XAx
 import { formatNumber } from "@/lib/utils";
 import type { Bucket } from "./buckets";
 
-const SERIES = [
-  { key: "views", label: "Page views", color: "var(--chart-1)" },
-  { key: "applies", label: "Apply clicks", color: "var(--chart-2)" },
+const ALL_SERIES = [
+  { key: "visits", label: "Site visits", color: "var(--chart-3)", projected: "projectedVisits" },
+  { key: "views", label: "Page views", color: "var(--chart-1)", projected: "projectedViews" },
+  { key: "applies", label: "Apply clicks", color: "var(--chart-2)", projected: "projectedApplies" },
 ] as const;
+type Series = (typeof ALL_SERIES)[number];
 
 function change(now: number, before: number | undefined): string | null {
   if (!before) return null;
@@ -15,7 +17,7 @@ function change(now: number, before: number | undefined): string | null {
   return `${pct >= 0 ? "▲ +" : "▼ "}${pct}%`;
 }
 
-function GlassTooltip({ active, payload, label, buckets }: TooltipContentProps<number, string> & { buckets: Bucket[] }) {
+function GlassTooltip({ active, payload, label, buckets, series }: TooltipContentProps<number, string> & { buckets: Bucket[]; series: readonly Series[] }) {
   if (!active || !payload?.length) return null;
   const index = buckets.findIndex((b) => b.label === label);
   const bucket = buckets[index];
@@ -27,7 +29,7 @@ function GlassTooltip({ active, payload, label, buckets }: TooltipContentProps<n
         {label}
         {bucket.elapsed < 1 && <span className="ml-1 font-normal text-muted">(so far)</span>}
       </p>
-      {SERIES.map((s) => {
+      {series.map((s) => {
         const value = bucket[s.key];
         const delta = change(value, prev?.[s.key]);
         return (
@@ -41,15 +43,17 @@ function GlassTooltip({ active, payload, label, buckets }: TooltipContentProps<n
       })}
       {bucket.projectedViews !== undefined && bucket.elapsed < 1 && (
         <p className="mt-2 border-t border-divider pt-2 text-muted">
-          Projected: {formatNumber(bucket.projectedViews)} views · {formatNumber(bucket.projectedApplies ?? 0)} clicks
+          Projected: {series.some((s) => s.key === "visits") && <>{formatNumber(bucket.projectedVisits ?? 0)} visits · </>}
+          {formatNumber(bucket.projectedViews)} views · {formatNumber(bucket.projectedApplies ?? 0)} clicks
         </p>
       )}
     </div>
   );
 }
 
-/** Page views + apply clicks, with a dashed projection for the period still in progress. */
-export default function TrafficChart({ buckets, height = 280 }: { buckets: Bucket[]; height?: number }) {
+/** Site visits (optional) + page views + apply clicks, with a dashed projection for the period still in progress. */
+export default function TrafficChart({ buckets, height = 280, withVisits = false }: { buckets: Bucket[]; height?: number; withVisits?: boolean }) {
+  const SERIES = withVisits ? ALL_SERIES : ALL_SERIES.filter((s) => s.key !== "visits");
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return (
     <div style={{ height }}>
@@ -67,7 +71,7 @@ export default function TrafficChart({ buckets, height = 280 }: { buckets: Bucke
           <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "var(--ink-muted)", fontSize: 12 }} minTickGap={16} />
           <YAxis tickLine={false} axisLine={false} allowDecimals={false} tick={{ fill: "var(--ink-muted)", fontSize: 12 }} width={44} />
           <Tooltip
-            content={(props) => <GlassTooltip {...(props as TooltipContentProps<number, string>)} buckets={buckets} />}
+            content={(props) => <GlassTooltip {...(props as TooltipContentProps<number, string>)} buckets={buckets} series={SERIES} />}
             cursor={{ stroke: "var(--ink-faint)", strokeDasharray: "4 4" }}
           />
           {SERIES.map((s) => (
@@ -88,7 +92,7 @@ export default function TrafficChart({ buckets, height = 280 }: { buckets: Bucke
             <Line
               key={`${s.key}-projected`}
               type="monotone"
-              dataKey={s.key === "views" ? "projectedViews" : "projectedApplies"}
+              dataKey={s.projected}
               stroke={s.color}
               strokeWidth={2}
               strokeDasharray="5 5"

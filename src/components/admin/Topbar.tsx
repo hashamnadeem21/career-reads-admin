@@ -22,7 +22,7 @@ const newItems = [
   { href: "/media?upload=1", label: "Upload", icon: Upload, staffOnly: true },
 ];
 
-const menuItem = "flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-sm outline-none data-[highlighted]:bg-hover [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-muted";
+const menuItem = "flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-sm outline-none focus-visible:shadow-none data-[highlighted]:bg-hover [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-muted";
 
 export function NewMenu({ trigger, role }: { trigger: ReactNode; role: Role }) {
   const items = newItems.filter((item) => isStaff(role) || !item.staffOnly);

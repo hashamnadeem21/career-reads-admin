@@ -6,7 +6,7 @@ import { saveJob } from "@/app/actions/jobs";
 import { Button } from "@/components/admin/Button";
 import { Field, Input, Select, Switch, Textarea } from "@/components/admin/Field";
 import { GlassPanel, PanelHeader } from "@/components/admin/Glass";
-import { ListInput } from "@/components/admin/ListInput";
+import { BulletListInput } from "@/components/admin/BulletListInput";
 import { initialFormState } from "@/lib/form-state";
 import { jobSlugFrom } from "@/lib/jobs/form";
 import type { JobFormValues } from "@/lib/jobs/form-values";
@@ -35,6 +35,12 @@ export interface CompanyOption {
  * Company accounts pass `company`: the name is fixed, "Featured" is hidden, and unless
  * the company is trusted, publishing becomes "Submit for review".
  */
+const placeholders = {
+  responsibilities: "Build and maintain REST APIs",
+  requirements: "3+ years with Node.js",
+  benefits: "Health insurance for you and your family",
+};
+
 export function JobForm({
   initial,
   originalSlug,
@@ -201,20 +207,21 @@ export function JobForm({
         <GlassPanel className="rise-in" style={{ "--stagger": 2 } as React.CSSProperties}>
           <PanelHeader title="Details" />
           <div className="flex flex-col gap-5">
-            <Field label="Summary" htmlFor="summary" required error={err("summary")} counter={{ value: v.summary.length, max: 240, min: 30 }}>
-              <Textarea {...text("summary")} rows={3} placeholder="One or two sentences about the role." />
+            <Field label="Summary" htmlFor="summary" required error={err("summary")} hint="A short intro to the role, at least 30 characters.">
+              <Textarea {...text("summary")} rows={5} placeholder="What the role is about and who it's for." />
             </Field>
             {(["responsibilities", "requirements", "benefits"] as const).map((key) => (
               <fieldset key={key} className="flex flex-col gap-2">
                 <legend className="mb-1 text-[13px] font-medium capitalize text-muted">{key}</legend>
-                <ListInput
+                <BulletListInput
                   name={key}
                   label={key === "responsibilities" ? "Responsibility" : key === "requirements" ? "Requirement" : "Benefit"}
                   defaultValue={v[key]}
                   onChange={(items) => set(key, items)}
                   invalid={Boolean(err(key))}
+                  placeholder={placeholders[key]}
                 />
-                {err(key) && <p className="text-xs font-medium text-danger">Each item needs at least 3 characters (max 20 items).</p>}
+                {err(key) && <p className="text-xs font-medium text-danger">Each point needs at least 3 characters (max 20 points).</p>}
               </fieldset>
             ))}
           </div>

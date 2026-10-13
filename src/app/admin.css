@@ -225,6 +225,12 @@
   box-shadow: 0 0 0 4px var(--primary-glow);
 }
 
+/* The command palette's search box is always focused; the highlighted result is its focus cue. */
+.admin-root [cmdk-input]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .glow-primary {
   box-shadow: 0 8px 24px -8px var(--primary-glow);
 }

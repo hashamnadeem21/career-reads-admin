@@ -12,6 +12,8 @@ export interface JobFormValues {
   experience: string;
   salary: string;
   summary: string;
+  /** Rich-text job description (HTML). Empty on older jobs, which use summary + lists. */
+  description: string;
   responsibilities: string[];
   requirements: string[];
   benefits: string[];
@@ -38,6 +40,7 @@ export const emptyJob = (): JobFormValues => ({
   experience: "entry",
   salary: "",
   summary: "",
+  description: "",
   responsibilities: [""],
   requirements: [""],
   benefits: [],

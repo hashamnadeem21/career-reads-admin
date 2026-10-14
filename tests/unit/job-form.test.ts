@@ -67,3 +67,20 @@ describe("helpers", () => {
     expect(jobSlugFrom("UI/UX Designer", "Acme & Sons")).toBe("ui-ux-designer-acme-and-sons");
   });
 });
+
+describe("job description", () => {
+  const rest = { ...valid, summary: "", responsibilities: [], requirements: [] };
+
+  it("derives the summary from the description", () => {
+    const parsed = parseJobForm(form({ ...rest, description: "<p>We are hiring a <strong>frontend developer</strong> for our team.</p>" }));
+    expect(parsed.errors).toBeUndefined();
+    expect(parsed.data?.summary).toBe("We are hiring a frontend developer for our team.");
+    expect(parsed.data?.description).toContain("<strong>frontend developer</strong>");
+  });
+
+  it("reports a short description on the description field", () => {
+    const parsed = parseJobForm(form({ ...rest, description: "<p>Too short</p>" }));
+    expect(parsed.errors?.description).toBeDefined();
+    expect(parsed.errors?.summary).toBeUndefined();
+  });
+});

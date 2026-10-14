@@ -113,6 +113,7 @@ export default async function EditJobPage({ params }: PageProps<"/jobs/[slug]">)
         categories={categories}
         companies={companies}
         company={isCompany ? { name: user.companyName ?? job.company, autoPublish: user.companyAutoPublish } : undefined}
+        canFeature={user.role === "super_admin"}
         state={state}
         initial={{
           title: job.title,
@@ -127,6 +128,7 @@ export default async function EditJobPage({ params }: PageProps<"/jobs/[slug]">)
           experience: job.experience,
           salary: job.salary ?? "",
           summary: job.summary,
+          description: job.description ?? "",
           responsibilities: job.responsibilities,
           requirements: job.requirements,
           benefits: job.benefits,

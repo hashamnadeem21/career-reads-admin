@@ -7,6 +7,7 @@ import { Button } from "@/components/admin/Button";
 import { Field, Input, Select, Switch, Textarea } from "@/components/admin/Field";
 import { GlassPanel, PanelHeader } from "@/components/admin/Glass";
 import { BulletListInput } from "@/components/admin/BulletListInput";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { initialFormState } from "@/lib/form-state";
 import { jobSlugFrom } from "@/lib/jobs/form";
 import type { JobFormValues } from "@/lib/jobs/form-values";
@@ -32,9 +33,26 @@ export interface CompanyOption {
  * Basics · Location & type · Details · How to apply · Publishing, with a live preview card.
  *
  * Staff pass `companies` (to pick which company account owns the job).
- * Company accounts pass `company`: the name is fixed, "Featured" is hidden, and unless
- * the company is trusted, publishing becomes "Submit for review".
+ * Company accounts pass `company`: the name is fixed, and unless the company is trusted,
+ * publishing becomes "Submit for review". "Featured" is shown only with `canFeature`
+ * (super admins): featured slots are an ad placement.
  */
+const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** An older job's summary and lists as one description, for "Switch to the editor". */
+function legacyToHtml(job: Pick<JobFormValues, "summary" | "responsibilities" | "requirements" | "benefits">): string {
+  const section = (title: string, items: string[]) => {
+    const points = items.map((i) => i.trim()).filter(Boolean);
+    return points.length ? `<h3>${title}</h3><ul>${points.map((p) => `<li><p>${escapeHtml(p)}</p></li>`).join("")}</ul>` : "";
+  };
+  return [
+    job.summary.trim() ? `<p>${escapeHtml(job.summary.trim())}</p>` : "",
+    section("Responsibilities", job.responsibilities),
+    section("Requirements", job.requirements),
+    section("Benefits", job.benefits),
+  ].join("");
+}
+
 const placeholders = {
   responsibilities: "Build and maintain REST APIs",
   requirements: "3+ years with Node.js",
@@ -47,6 +65,7 @@ export function JobForm({
   categories,
   companies,
   company,
+  canFeature = false,
   state: jobState,
 }: {
   initial: JobFormValues;
@@ -54,6 +73,7 @@ export function JobForm({
   categories: { slug: string; name: string }[];
   companies?: CompanyOption[];
   company?: { name: string; autoPublish: boolean };
+  canFeature?: boolean;
   /** Current state of an existing job (for the "goes back to review" warning). */
   state?: ContentState;
 }) {
@@ -62,6 +82,8 @@ export function JobForm({
   const [state, action, pending] = useActionState(saveJob, initialFormState);
   const [v, setV] = useState(initial);
   const [slugEdited, setSlugEdited] = useState(Boolean(originalSlug));
+  // New jobs and jobs saved with the editor use it; older jobs keep their fields until you switch.
+  const [richText, setRichText] = useState(Boolean(initial.description) || !originalSlug);
   const [applyBy, setApplyBy] = useState<"url" | "email">(initial.applyEmail && !initial.applyUrl ? "email" : "url");
   const err = (key: string) => state.errors?.[key];
 
@@ -205,26 +227,60 @@ export function JobForm({
         </GlassPanel>
 
         <GlassPanel className="rise-in" style={{ "--stagger": 2 } as React.CSSProperties}>
-          <PanelHeader title="Details" />
-          <div className="flex flex-col gap-5">
-            <Field label="Summary" htmlFor="summary" required error={err("summary")} hint="A short intro to the role, at least 30 characters.">
-              <Textarea {...text("summary")} rows={5} placeholder="What the role is about and who it's for." />
+          <PanelHeader
+            title={richText ? "Job description" : "Details"}
+            description={
+              richText
+                ? "Paste the whole job ad here. Bold, italics, headings, bullet points and links are kept and shown on the site exactly like this."
+                : undefined
+            }
+          />
+          {richText ? (
+            <Field label="Job description" htmlFor="description" required error={err("description") ?? err("summary")}>
+              <RichTextEditor
+                id="description"
+                name="description"
+                defaultValue={v.description}
+                invalid={Boolean(err("description") ?? err("summary"))}
+                placeholder="Paste or write the job description: about the role, responsibilities, requirements, benefits…"
+                onChange={(html) => set("description", html)}
+              />
             </Field>
-            {(["responsibilities", "requirements", "benefits"] as const).map((key) => (
-              <fieldset key={key} className="flex flex-col gap-2">
-                <legend className="mb-1 text-[13px] font-medium capitalize text-muted">{key}</legend>
-                <BulletListInput
-                  name={key}
-                  label={key === "responsibilities" ? "Responsibility" : key === "requirements" ? "Requirement" : "Benefit"}
-                  defaultValue={v[key]}
-                  onChange={(items) => set(key, items)}
-                  invalid={Boolean(err(key))}
-                  placeholder={placeholders[key]}
-                />
-                {err(key) && <p className="text-xs font-medium text-danger">Each point needs at least 3 characters (max 20 points).</p>}
-              </fieldset>
-            ))}
-          </div>
+          ) : (
+            <div className="flex flex-col gap-5">
+              <div className="glass-inset flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+                <p className="text-muted">This job uses the older layout. Switch to edit it as one formatted description.</p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    set("description", legacyToHtml(v));
+                    setRichText(true);
+                  }}
+                >
+                  Switch to the editor
+                </Button>
+              </div>
+              <Field label="Summary" htmlFor="summary" required error={err("summary")} hint="A short intro to the role, at least 30 characters.">
+                <Textarea {...text("summary")} rows={5} placeholder="What the role is about and who it's for." />
+              </Field>
+              {(["responsibilities", "requirements", "benefits"] as const).map((key) => (
+                <fieldset key={key} className="flex flex-col gap-2">
+                  <legend className="mb-1 text-[13px] font-medium capitalize text-muted">{key}</legend>
+                  <BulletListInput
+                    name={key}
+                    label={key === "responsibilities" ? "Responsibility" : key === "requirements" ? "Requirement" : "Benefit"}
+                    defaultValue={v[key]}
+                    onChange={(items) => set(key, items)}
+                    invalid={Boolean(err(key))}
+                    placeholder={placeholders[key]}
+                  />
+                  {err(key) && <p className="text-xs font-medium text-danger">Each point needs at least 3 characters (max 20 points).</p>}
+                </fieldset>
+              ))}
+            </div>
+          )}
         </GlassPanel>
 
         <GlassPanel className="rise-in" style={{ "--stagger": 3 } as React.CSSProperties}>
@@ -282,7 +338,7 @@ export function JobForm({
                 </p>
               )}
             </fieldset>
-            {!isCompany && (
+            {canFeature && (
               <Switch
                 className="sm:col-span-2"
                 name="featured"

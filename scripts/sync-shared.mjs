@@ -21,6 +21,7 @@ const FILES = [
   "content/safe-mdx.ts",
   "jobs/categories.ts",
   "jobs/schema.ts",
+  "jobs/questions.ts",
   "settings-schema.ts",
 ];
 

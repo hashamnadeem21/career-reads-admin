@@ -7,7 +7,7 @@ import { ApiError, apiFetch, formErrors } from "@/lib/api/client";
 import type { JobRow } from "@/lib/api/types";
 import { requireStaff, requireUser } from "@/lib/auth/require-user";
 import type { FormState } from "@/lib/form-state";
-import { JOB_LIST_FIELDS, parseJobForm } from "@/lib/jobs/form";
+import { JOB_LIST_FIELDS, parseJobForm, parseQuestionsField } from "@/lib/jobs/form";
 import { SLUG_PATTERN } from "@/shared/content/schema";
 
 /**
@@ -54,6 +54,8 @@ function jobBody(formData: FormData, slug: string) {
     summary: text("summary"),
     description: text("description"),
     ...lists,
+    onsiteApply: formData.get("onsiteApply") === "on",
+    questions: parseQuestionsField(text("questions")).questions,
     applyUrl: text("applyUrl"),
     applyEmail: text("applyEmail"),
     postedAt: text("postedAt"),
@@ -128,11 +130,22 @@ export async function setJobStatus(slug: string, status: "draft" | "published"):
   }
 }
 
-export async function deleteJob(slug: string): Promise<void> {
+/**
+ * Deletes a job. One with applications is refused (`applications` says how many) unless
+ * `withApplications` confirms that they and their CVs go too.
+ */
+export async function deleteJob(
+  slug: string,
+  withApplications = false,
+): Promise<{ ok: false; message: string; applications?: number }> {
   await requireUser();
   try {
-    await apiFetch(jobPath(slug), { method: "DELETE" });
+    await apiFetch(jobPath(slug), { method: "DELETE", query: { withApplications: withApplications ? "true" : undefined } });
   } catch (error) {
+    if (error instanceof ApiError && error.code === "has_applications") {
+      const details = error.details as { applications?: number } | undefined;
+      return { ok: false, message: error.message, applications: details?.applications };
+    }
     rethrow(error);
   }
   revalidatePath("/jobs");

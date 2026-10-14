@@ -24,7 +24,7 @@ export function NewCompanyButton() {
       title="Add a company"
       description="After creating it, invite people from the company so they can post jobs."
     >
-      <CompanyForm initial={{ name: "", website: "", autoPublish: false }} />
+      <CompanyForm initial={{ name: "", website: "", autoPublish: false, onsiteApplyEnabled: false }} />
     </GlassDialog>
   );
 }

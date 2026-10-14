@@ -52,7 +52,9 @@ export function getCompany(id: string): Promise<CompanyRow | null> {
 }
 
 /** id, name and website of every company (the staff job form's picker). */
-export function companyOptions(): Promise<{ id: string; name: string; website: string | null }[]> {
+export function companyOptions(): Promise<
+  { id: string; name: string; website: string | null; onsiteApplyEnabled: boolean }[]
+> {
   return apiFetch("/companies/options");
 }
 

@@ -20,6 +20,7 @@ const companySchema = z.object({
     .transform((v) => v || undefined)
     .pipe(z.url("Enter a full address, like https://company.com").optional()),
   autoPublish: z.boolean(),
+  onsiteApplyEnabled: z.boolean(),
 });
 
 const idSchema = z.uuid();
@@ -29,6 +30,7 @@ function readCompanyForm(formData: FormData) {
     name: formData.get("name") ?? "",
     website: formData.get("website") ?? "",
     autoPublish: formData.get("autoPublish") === "on",
+    onsiteApplyEnabled: formData.get("onsiteApplyEnabled") === "on",
   });
 }
 

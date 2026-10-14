@@ -13,6 +13,7 @@ export interface CompanyFormValues {
   name: string;
   website: string;
   autoPublish: boolean;
+  onsiteApplyEnabled: boolean;
 }
 
 /** Create (no `id`) or edit a company. */
@@ -20,6 +21,7 @@ export function CompanyForm({ initial, onDone }: { initial: CompanyFormValues; o
   const editing = Boolean(initial.id);
   const [state, action, pending] = useActionState(editing ? updateCompany : createCompany, initialFormState);
   const [autoPublish, setAutoPublish] = useState(initial.autoPublish);
+  const [onsiteApply, setOnsiteApply] = useState(initial.onsiteApplyEnabled);
   const err = (key: string) => state.errors?.[key];
 
   // React to each successful save exactly once (onDone may be a new function every render).
@@ -59,6 +61,17 @@ export function CompanyForm({ initial, onDone }: { initial: CompanyFormValues; o
         description="Off: every new or changed job waits for your approval. On: their jobs go live as soon as they publish."
         checked={autoPublish}
         onCheckedChange={setAutoPublish}
+      />
+      <Switch
+        name="onsiteApplyEnabled"
+        label="Applications on Career Reads"
+        description={
+          editing && initial.onsiteApplyEnabled && !onsiteApply
+            ? "Turning this off stops applications on their jobs right away. Jobs with no other way to apply leave the site. Applicants already received stay in their account."
+            : "Their jobs can take applications here: candidates upload a CV and answer the company's questions, and the company reviews them under Applicants."
+        }
+        checked={onsiteApply}
+        onCheckedChange={setOnsiteApply}
       />
       <Button type="submit" variant="primary" disabled={pending} className="self-start">
         <Save /> {pending ? "Saving…" : editing ? "Save changes" : "Create company"}

@@ -15,10 +15,19 @@ const PUBLIC_ACTIONS = new Set([
 ]);
 
 /** Action modules company accounts may call. Each function must scope to the caller's company itself. */
-const COMPANY_ACTION_MODULES = new Set(["jobs.ts", "search.ts", "auth.ts", "preferences.ts"]);
+const COMPANY_ACTION_MODULES = new Set(["jobs.ts", "applications.ts", "search.ts", "auth.ts", "preferences.ts"]);
 
 /** Pages company accounts may open (dashboard branches by role; job pages are scoped). */
-const COMPANY_PAGES = new Set(["(admin)/page.tsx", "(admin)/jobs/page.tsx", "(admin)/jobs/new/page.tsx", "(admin)/jobs/[slug]/page.tsx"]);
+const COMPANY_PAGES = new Set([
+  "(admin)/page.tsx",
+  "(admin)/jobs/page.tsx",
+  "(admin)/jobs/new/page.tsx",
+  "(admin)/jobs/[slug]/page.tsx",
+  "(admin)/applications/page.tsx",
+  "(admin)/applications/[id]/page.tsx",
+]);
+/** Route handlers companies may call: the API limits them to their own applicants. */
+const COMPANY_ROUTES = new Set(["api/applications/[id]/cv/route.ts", "api/export/applications/route.ts"]);
 
 /** Super-admin-only pages and actions. */
 const SUPER_ADMIN_PAGES = ["(admin)/settings/page.tsx", "(admin)/users/page.tsx", "(admin)/companies/page.tsx", "(admin)/companies/[id]/page.tsx"];
@@ -69,6 +78,16 @@ describe("server-side authorization", () => {
     },
   );
 
+  it("application actions call the API as the signed-in user, and only the super admin can erase a person", () => {
+    const actions = exportedFunctions(read("actions/applications.ts"));
+    for (const [fn, body] of actions) {
+      expect(body, fn).toMatch(/apiFetch[<(]/);
+      expect(body, `${fn} must check the session`).toMatch(/await (requireUser|requireStaff|requireSuperAdmin)\(/);
+      expect(body, `${fn} must send the user's token`).not.toMatch(/auth: false/);
+    }
+    expect(actions.get("forgetCandidate")).toMatch(/requireSuperAdmin\(\)/);
+  });
+
   it("job actions call the API as the signed-in user (the API scopes company accounts)", () => {
     const jobs = exportedFunctions(read("actions/jobs.ts"));
     for (const [fn, body] of jobs) {
@@ -101,9 +120,11 @@ describe("server-side authorization", () => {
     }
   });
 
-  it("every API route handler is staff-only", () => {
+  it("every API route handler checks the session; only the applicant routes are open to companies", () => {
     for (const file of files(path.join(root, "api"), /^route\.ts$/)) {
-      expect(readFileSync(file, "utf8"), path.relative(root, file)).toMatch(/await (requireStaff|requireSuperAdmin)\(/);
+      const rel = path.relative(root, file);
+      const guard = COMPANY_ROUTES.has(rel) ? /await requireUser\(/ : /await (requireStaff|requireSuperAdmin)\(/;
+      expect(readFileSync(file, "utf8"), rel).toMatch(guard);
     }
   });
 
@@ -111,7 +132,7 @@ describe("server-side authorization", () => {
     for (const page of SUPER_ADMIN_PAGES) expect(read(page), page).toMatch(/await requireSuperAdmin\(\)/);
   });
 
-  it("every admin page checks the session itself, and only job pages are open to companies", () => {
+  it("every admin page checks the session itself, and only job and applicant pages are open to companies", () => {
     const pages = files(path.join(root, "(admin)"), /^page\.tsx$/).map((f) => path.relative(root, f));
     for (const page of COMPANY_PAGES) expect(pages).toContain(page);
     for (const page of pages) {

@@ -10,7 +10,7 @@ import { BulletListInput } from "@/components/admin/BulletListInput";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { initialFormState } from "@/lib/form-state";
 import { jobSlugFrom } from "@/lib/jobs/form";
-import type { JobFormValues } from "@/lib/jobs/form-values";
+import { questionsField, type JobFormValues } from "@/lib/jobs/form-values";
 import type { ContentState } from "@/components/admin/Badge";
 import { cn } from "@/lib/utils";
 import {
@@ -22,11 +22,13 @@ import {
   workModelLabels,
 } from "@/shared/jobs/categories";
 import { JobPreviewCard } from "./JobPreviewCard";
+import { QuestionBuilder } from "./QuestionBuilder";
 
 export interface CompanyOption {
   id: string;
   name: string;
   website: string | null;
+  onsiteApplyEnabled: boolean;
 }
 
 /**
@@ -35,7 +37,8 @@ export interface CompanyOption {
  * Staff pass `companies` (to pick which company account owns the job).
  * Company accounts pass `company`: the name is fixed, and unless the company is trusted,
  * publishing becomes "Submit for review". "Featured" is shown only with `canFeature`
- * (super admins): featured slots are an ad placement.
+ * (super admins): featured slots are an ad placement. "Apply on Career Reads" is offered for
+ * Career Reads' own jobs and companies a super admin has allowed (`onsiteApplyEnabled`).
  */
 const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -72,7 +75,7 @@ export function JobForm({
   originalSlug?: string;
   categories: { slug: string; name: string }[];
   companies?: CompanyOption[];
-  company?: { name: string; autoPublish: boolean };
+  company?: { name: string; autoPublish: boolean; onsiteApply: boolean };
   canFeature?: boolean;
   /** Current state of an existing job (for the "goes back to review" warning). */
   state?: ContentState;
@@ -84,8 +87,18 @@ export function JobForm({
   const [slugEdited, setSlugEdited] = useState(Boolean(originalSlug));
   // New jobs and jobs saved with the editor use it; older jobs keep their fields until you switch.
   const [richText, setRichText] = useState(Boolean(initial.description) || !originalSlug);
-  const [applyBy, setApplyBy] = useState<"url" | "email">(initial.applyEmail && !initial.applyUrl ? "email" : "url");
+  const [applyBy, setApplyBy] = useState<"url" | "email" | "none">(
+    initial.applyUrl ? "url" : initial.applyEmail ? "email" : initial.onsiteApply ? "none" : "url",
+  );
   const err = (key: string) => state.errors?.[key];
+  // Already on stays allowed (a later permission change doesn't block unrelated edits; the API agrees).
+  const keepsOnsite = initial.onsiteApply && (company ? true : initial.companyId === v.companyId);
+  const onsiteAllowed =
+    keepsOnsite ||
+    (company ? company.onsiteApply : !v.companyId || Boolean(companies?.find((c) => c.id === v.companyId)?.onsiteApplyEnabled));
+  const onsite = onsiteAllowed && v.onsiteApply;
+  // With on-site applications, "Career Reads only" is a choice; without them a link or email is needed.
+  const external = !onsite && applyBy === "none" ? "url" : applyBy;
 
   const set = <K extends keyof JobFormValues>(key: K, value: JobFormValues[K]) =>
     setV((prev) => {
@@ -284,32 +297,68 @@ export function JobForm({
         </GlassPanel>
 
         <GlassPanel className="rise-in" style={{ "--stagger": 3 } as React.CSSProperties}>
-          <PanelHeader title="How to apply" description="People apply on the company's site or by email." />
-          <div role="radiogroup" aria-label="How to apply" className="glass-inset mb-4 inline-flex p-1">
-            {(["url", "email"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                role="radio"
-                aria-checked={applyBy === mode}
-                onClick={() => setApplyBy(mode)}
-                className={cn("rounded-lg px-3 py-1.5 text-sm font-semibold", applyBy === mode ? "bg-primary text-primary-ink" : "text-muted")}
-              >
-                {mode === "url" ? "Apply link" : "Apply email"}
-              </button>
-            ))}
-          </div>
-          {applyBy === "url" ? (
-            <Field label="Apply link" htmlFor="applyUrl" error={err("applyUrl")}>
-              <Input {...text("applyUrl")} type="url" inputMode="url" placeholder="https://company.com/careers/…" />
-            </Field>
+          <PanelHeader
+            title="How candidates apply"
+            description="On Career Reads, on the company's own site or by email, or both, like LinkedIn's Easy Apply next to “Apply on company website”."
+          />
+          {/* Sent even while on-site applications are off, so switching them off doesn't lose the questions. */}
+          <input type="hidden" name="questions" value={questionsField(v.questions)} />
+          {onsiteAllowed ? (
+            <div className="flex flex-col gap-4">
+              <Switch
+                name="onsiteApply"
+                label="Apply on Career Reads"
+                description="Candidates upload their CV and answer your questions without leaving the site. You'll find them under Applicants."
+                checked={v.onsiteApply}
+                onCheckedChange={(c) => set("onsiteApply", c)}
+              />
+              {err("onsiteApply") && <p className="text-xs font-medium text-danger">{err("onsiteApply")}</p>}
+              {onsite && (
+                <fieldset className="flex flex-col gap-2">
+                  <legend className="mb-2 text-sm font-semibold">Screening questions</legend>
+                  <QuestionBuilder value={v.questions} onChange={(questions) => set("questions", questions)} error={err} />
+                </fieldset>
+              )}
+            </div>
           ) : (
-            <Field label="Apply email" htmlFor="applyEmail" error={err("applyEmail") ?? err("applyUrl")}>
-              <Input {...text("applyEmail")} type="email" inputMode="email" placeholder="jobs@company.com" />
-            </Field>
+            <p className="glass-inset px-4 py-3 text-sm text-muted">
+              {company
+                ? "Want CVs sent straight to your account? Ask Career Reads to turn on applications on Career Reads for your company."
+                : "Applications on Career Reads aren't turned on for this company. A super admin can turn them on under Companies."}
+            </p>
           )}
-          {/* Only the chosen method is sent. */}
-          <input type="hidden" name={applyBy === "url" ? "applyEmail" : "applyUrl"} value="" />
+
+          <div className="mt-5 border-t border-glass-border pt-5">
+            <p className="mb-3 text-sm font-semibold">{onsite ? "Also apply on the company's site (optional)" : "Apply on the company's site"}</p>
+            <div role="radiogroup" aria-label="Apply on the company's site" className="glass-inset mb-4 inline-flex p-1">
+              {(onsite ? (["none", "url", "email"] as const) : (["url", "email"] as const)).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  role="radio"
+                  aria-checked={external === mode}
+                  onClick={() => setApplyBy(mode)}
+                  className={cn("rounded-lg px-3 py-1.5 text-sm font-semibold", external === mode ? "bg-primary text-primary-ink" : "text-muted")}
+                >
+                  {mode === "url" ? "Apply link" : mode === "email" ? "Apply email" : "Career Reads only"}
+                </button>
+              ))}
+            </div>
+            {external === "url" ? (
+              <Field label="Apply link" htmlFor="applyUrl" error={err("applyUrl")}>
+                <Input {...text("applyUrl")} type="url" inputMode="url" placeholder="https://company.com/careers/…" />
+              </Field>
+            ) : external === "email" ? (
+              <Field label="Apply email" htmlFor="applyEmail" error={err("applyEmail") ?? err("applyUrl")}>
+                <Input {...text("applyEmail")} type="email" inputMode="email" placeholder="jobs@company.com" />
+              </Field>
+            ) : (
+              <p className="text-sm text-muted">Candidates apply on Career Reads only.</p>
+            )}
+            {/* Only the chosen method is sent. */}
+            {external !== "url" && <input type="hidden" name="applyUrl" value="" />}
+            {external !== "email" && <input type="hidden" name="applyEmail" value="" />}
+          </div>
         </GlassPanel>
 
         <GlassPanel className="rise-in" style={{ "--stagger": 4 } as React.CSSProperties}>

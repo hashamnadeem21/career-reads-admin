@@ -52,6 +52,8 @@ export const CUSTOMIZE_EVENT = "admin:customize-dashboard";
 export function Topbar({ user, badges }: { user: SessionUser; badges: NavBadges }) {
   const unread = badges.unreadMessages ?? 0;
   const pendingJobs = badges.pendingJobs ?? 0;
+  const newApplications = badges.newApplications ?? 0;
+  const total = unread + pendingJobs + newApplications;
   const pathname = usePathname();
   const onDashboard = pathname === "/";
   const staff = isStaff(user.role);
@@ -70,17 +72,23 @@ export function Topbar({ user, badges }: { user: SessionUser; badges: NavBadges 
         <Button variant="secondary" size="icon" onClick={openCommandPalette} aria-label="Search (Command K)" className="hidden sm:inline-flex">
           <Search />
         </Button>
-        {staff && (
+        {(staff || user.companyOnsiteApply) && (
           <Popover.Root>
             <Popover.Trigger asChild>
-              <Button variant="secondary" size="icon" className="relative" aria-label={unread + pendingJobs ? `Notifications, ${unread + pendingJobs} new` : "Notifications"}>
+              <Button variant="secondary" size="icon" className="relative" aria-label={total ? `Notifications, ${total} new` : "Notifications"}>
                 <Bell />
-                {unread + pendingJobs > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-[var(--glass-solid-fallback)]" aria-hidden />}
+                {total > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-[var(--glass-solid-fallback)]" aria-hidden />}
               </Button>
             </Popover.Trigger>
             <Popover.Portal>
               <Popover.Content align="end" sideOffset={8} className="glass-strong z-50 w-72 !rounded-2xl p-4 text-ink">
                 <p className="text-sm font-semibold">Notifications</p>
+                {newApplications > 0 && (
+                  <Link href="/applications?status=new" className="mt-3 flex items-center gap-3 rounded-xl bg-inset p-3 text-sm hover:bg-hover">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
+                    {newApplications} new {newApplications === 1 ? "applicant" : "applicants"}
+                  </Link>
+                )}
                 {pendingJobs > 0 && (
                   <Link href="/jobs?status=review" className="mt-3 flex items-center gap-3 rounded-xl bg-inset p-3 text-sm hover:bg-hover">
                     <span className="h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
@@ -93,7 +101,7 @@ export function Topbar({ user, badges }: { user: SessionUser; badges: NavBadges 
                     {unread} unread {unread === 1 ? "message" : "messages"}
                   </Link>
                 )}
-                {unread + pendingJobs === 0 && (
+                {total === 0 && (
                   <p className="mt-2 text-sm text-muted">You&apos;re all caught up.</p>
                 )}
               </Popover.Content>

@@ -16,6 +16,8 @@ export interface SessionUser {
   companyName: string | null;
   /** Whether the company may publish without review. */
   companyAutoPublish: boolean;
+  /** Whether the company may take applications on Career Reads (set by a super admin). */
+  companyOnsiteApply: boolean;
   theme: Theme;
 }
 

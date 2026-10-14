@@ -7,7 +7,7 @@ import { ApiError, apiFetch, formErrors } from "@/lib/api/client";
 import type { CompanyRow } from "@/lib/api/types";
 import { requireSuperAdmin } from "@/lib/auth/require-user";
 import type { FormState } from "@/lib/form-state";
-import type { InviteResult } from "./users";
+import type { InviteCreated, InviteResult } from "./users";
 
 /** Companies are managed by super admins only. */
 
@@ -112,12 +112,12 @@ export async function inviteCompanyUser(input: { companyId: string; email: strin
   const companyId = idSchema.safeParse(input.companyId);
   if (!companyId.success) return { ok: false, message: "This company no longer exists." };
   try {
-    const created = await apiFetch<{ message: string; link: string }>(`/companies/${companyId.data}/invites`, {
+    const created = await apiFetch<InviteCreated>(`/companies/${companyId.data}/invites`, {
       method: "POST",
       body: { email: input.email, name: input.name },
     });
     revalidatePath(`/companies/${companyId.data}`);
-    return { ok: true, message: created.message, link: created.link };
+    return { ok: true, ...created };
   } catch (error) {
     if (!(error instanceof ApiError)) throw error;
     return { ok: false, message: error.message, ...(Object.keys(error.fields).length ? { errors: error.fields } : {}) };

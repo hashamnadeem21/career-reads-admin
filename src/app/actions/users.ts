@@ -14,7 +14,17 @@ export interface InviteResult {
   ok: boolean;
   message: string;
   link?: string;
+  /** Whether the API emailed the invite (the link can be copied either way). */
+  emailed?: boolean;
+  emailError?: string;
   errors?: Record<string, string>;
+}
+
+export interface InviteCreated {
+  message: string;
+  link: string;
+  emailed: boolean;
+  emailError?: string;
 }
 
 /** The API answer as `{ ok: false, message, errors }` (what the admin's forms expect). */
@@ -27,9 +37,9 @@ function failure(error: unknown): { ok: false; message: string; errors?: Record<
 export async function inviteUser(input: { email: string; name: string; role: string }): Promise<InviteResult> {
   await requireSuperAdmin();
   try {
-    const created = await apiFetch<{ message: string; link: string }>("/invites", { method: "POST", body: input });
+    const created = await apiFetch<InviteCreated>("/invites", { method: "POST", body: input });
     revalidatePath("/users");
-    return { ok: true, message: created.message, link: created.link };
+    return { ok: true, ...created };
   } catch (error) {
     return failure(error);
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Link2, Trash2, UserPlus, Users } from "lucide-react";
+import { Trash2, UserPlus, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/admin/EmptyState";
 import { Field, Input } from "@/components/admin/Field";
 import { PanelHeader } from "@/components/admin/Glass";
 import { ConfirmDialog, GlassDialog } from "@/components/admin/GlassDialog";
+import { InviteSent } from "@/components/users/InviteSent";
 import { formatDate } from "@/lib/utils";
 
 interface Member {
@@ -32,8 +33,7 @@ function InviteCompanyUser({ companyId, companyName, disabled }: { companyId: st
   const [open, setOpen] = useState(false);
   const [v, setV] = useState({ email: "", name: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [link, setLink] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [sent, setSent] = useState<{ link: string; emailed: boolean; emailError?: string } | null>(null);
   const [pending, start] = useTransition();
 
   return (
@@ -42,7 +42,7 @@ function InviteCompanyUser({ companyId, companyName, disabled }: { companyId: st
       onOpenChange={(o) => {
         setOpen(o);
         if (!o) {
-          setLink(null);
+          setSent(null);
           setV({ email: "", name: "" });
           setErrors({});
         }
@@ -53,26 +53,10 @@ function InviteCompanyUser({ companyId, companyName, disabled }: { companyId: st
         </Button>
       }
       title={`Invite someone from ${companyName}`}
-      description="They can post and edit this company's jobs and see their stats. Nothing else."
+      description="We email them a one-time link to choose a password. They can post and edit this company's jobs, see their stats and review applicants. Nothing else."
     >
-      {link ? (
-        <div className="flex flex-col gap-3">
-          <p className="text-sm">Send this link to {v.name}. It works once and expires in 7 days.</p>
-          <div className="glass-inset flex items-center gap-2 p-2 focus-within:shadow-[0_0_0_4px_var(--primary-glow)]">
-            <Link2 className="h-4 w-4 shrink-0 text-muted" aria-hidden />
-            <input readOnly value={link} aria-label="Invite link" className="min-w-0 flex-1 bg-transparent text-xs outline-none focus-visible:shadow-none" onFocus={(e) => e.target.select()} />
-            <Button
-              size="sm"
-              onClick={async () => {
-                await navigator.clipboard.writeText(link);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
-              }}
-            >
-              {copied ? <Check /> : <Copy />} {copied ? "Copied" : "Copy"}
-            </Button>
-          </div>
-        </div>
+      {sent ? (
+        <InviteSent name={v.name} email={v.email} {...sent} />
       ) : (
         <form
           className="flex flex-col gap-4"
@@ -82,7 +66,7 @@ function InviteCompanyUser({ companyId, companyName, disabled }: { companyId: st
               const r = await inviteCompanyUser({ companyId, ...v });
               setErrors(r.errors ?? {});
               if (r.ok && r.link) {
-                setLink(r.link);
+                setSent({ link: r.link, emailed: Boolean(r.emailed), emailError: r.emailError });
                 router.refresh();
               } else toast.error(r.message);
             });
@@ -101,7 +85,7 @@ function InviteCompanyUser({ companyId, companyName, disabled }: { companyId: st
             />
           </Field>
           <Button type="submit" variant="primary" disabled={pending}>
-            {pending ? "Creating…" : "Create invite link"}
+            {pending ? "Sending…" : "Send invite"}
           </Button>
         </form>
       )}

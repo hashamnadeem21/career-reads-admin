@@ -7,6 +7,8 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { requireStaff } from "@/lib/auth/require-user";
 import { getNewsletter, renderEmail } from "@/lib/newsletters/queries";
 import { parseRouteId } from "@/lib/utils";
+import { emailContentOf } from "@/lib/newsletters/email-content";
+import { env } from "@/lib/env";
 
 async function load(param: string) {
   const id = parseRouteId(param);
@@ -33,8 +35,9 @@ export default async function NewsletterPage({ params }: PageProps<"/newsletters
       <>
         {!sendingReady && <SendingSetupNotice />}
         <NewsletterEditor
+          siteOrigin={env().PUBLIC_SITE_URL}
           id={newsletter.id}
-          initial={{ subject: newsletter.subject, previewText: newsletter.previewText, body: newsletter.body }}
+          initial={emailContentOf(newsletter)}
           initialHtml={html}
           schedule={
             newsletter.status === "scheduled" && newsletter.scheduledAt
@@ -57,6 +60,7 @@ export default async function NewsletterPage({ params }: PageProps<"/newsletters
       data={{
         id: newsletter.id,
         subject: newsletter.subject,
+        previewText: newsletter.previewText,
         status: newsletter.status,
         recipients: newsletter.recipients,
         sentCount: newsletter.sentCount,

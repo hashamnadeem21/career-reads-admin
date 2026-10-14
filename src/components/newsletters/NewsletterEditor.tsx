@@ -23,6 +23,7 @@ import { EmailPreview } from "./EmailPreview";
 import { NewsletterStatus } from "./NewsletterStatus";
 import { type SendChoice, SendDialog, TestSendDialog } from "./SendDialogs";
 import { useLivePreview, useSaveShortcut, useUnsavedWarning } from "./use-email-editor";
+import { emailContentOf } from "@/lib/newsletters/email-content";
 
 export interface ScheduleInfo {
   scheduledAt: Date;
@@ -44,6 +45,7 @@ export function NewsletterEditor({
   sendingReady,
   canSend,
   userEmail,
+  siteOrigin,
 }: {
   id: number | null;
   initial: NewsletterInput;
@@ -55,6 +57,8 @@ export function NewsletterEditor({
   /** Super admins send and schedule; editors draft and test. */
   canSend: boolean;
   userEmail: string;
+  /** The website's origin, to show media-library images (stored as site paths). */
+  siteOrigin: string;
 }) {
   const router = useRouter();
   const [id, setId] = useState(initialId);
@@ -62,7 +66,7 @@ export function NewsletterEditor({
   const [saved, setSaved] = useState(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, startSaving] = useTransition();
-  const dirty = id === null || values.subject !== saved.subject || values.previewText !== saved.previewText || values.body !== saved.body;
+  const dirty = id === null || JSON.stringify(emailContentOf(values)) !== JSON.stringify(emailContentOf(saved));
   const preview = useLivePreview(values, { content: initial, html: initialHtml });
   useUnsavedWarning(dirty);
 
@@ -168,11 +172,17 @@ export function NewsletterEditor({
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <GlassPanel className="rise-in flex flex-col gap-5">
-          <EmailFields values={values} errors={errors} onChange={set} />
+          <EmailFields values={values} errors={errors} onChange={set} siteOrigin={siteOrigin} />
         </GlassPanel>
 
         <GlassPanel className="rise-in xl:sticky xl:top-4 xl:self-start">
-          <EmailPreview html={preview.html} pending={preview.pending} error={preview.error} />
+          <EmailPreview
+            html={preview.html}
+            pending={preview.pending}
+            error={preview.error}
+            subject={values.subject}
+            previewText={values.previewText}
+          />
         </GlassPanel>
       </div>
     </>

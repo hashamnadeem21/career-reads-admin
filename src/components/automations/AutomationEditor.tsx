@@ -19,6 +19,7 @@ import { type DelayUnit, describeTrigger, joinDelay, splitDelay } from "@/lib/au
 import { fromLocalInput, toLocalInput } from "@/lib/local-time";
 import { ActiveSwitch } from "./ActiveSwitch";
 import { AutomationStatus } from "./AutomationStatus";
+import { emailContentOf } from "@/lib/newsletters/email-content";
 
 /** What the form edits. Dates are local "2026-10-14T09:00" strings, turned into ISO on save. */
 interface FormValues {
@@ -31,6 +32,9 @@ interface FormValues {
   subject: string;
   previewText: string;
   body: string;
+  heroImage: string;
+  ctaLabel: string;
+  ctaUrl: string;
 }
 
 export interface AutomationInitial {
@@ -41,6 +45,9 @@ export interface AutomationInitial {
   subject: string;
   previewText: string;
   body: string;
+  heroImage: string;
+  ctaLabel: string;
+  ctaUrl: string;
 }
 
 function toForm(a: AutomationInitial): FormValues {
@@ -52,9 +59,7 @@ function toForm(a: AutomationInitial): FormValues {
     delayUnit: a.delayMinutes > 0 ? unit : "days",
     startsAt: toLocalInput(a.startsAt),
     endsAt: toLocalInput(a.endsAt),
-    subject: a.subject,
-    previewText: a.previewText,
-    body: a.body,
+    ...emailContentOf(a),
   };
 }
 
@@ -67,9 +72,7 @@ function toInput(v: FormValues): AutomationInput {
     name: v.name,
     trigger: "subscribed",
     delayMinutes: delayMinutes(v),
-    subject: v.subject,
-    previewText: v.previewText,
-    body: v.body,
+    ...emailContentOf(v),
     startsAt: fromLocalInput(v.startsAt),
     endsAt: fromLocalInput(v.endsAt),
   };
@@ -87,6 +90,7 @@ export function AutomationEditor({
   sendingReady,
   canToggle,
   userEmail,
+  siteOrigin,
 }: {
   id: number | null;
   initial: AutomationInitial;
@@ -95,6 +99,8 @@ export function AutomationEditor({
   sendingReady: boolean;
   canToggle: boolean;
   userEmail: string;
+  /** The website's origin, to show media-library images (stored as site paths). */
+  siteOrigin: string;
 }) {
   const router = useRouter();
   const [id, setId] = useState(initialId);
@@ -104,7 +110,7 @@ export function AutomationEditor({
   const [saving, startSaving] = useTransition();
   const dirty = id === null || JSON.stringify(toInput(values)) !== saved;
   const preview = useLivePreview(values, {
-    content: { subject: initial.subject, previewText: initial.previewText, body: initial.body },
+    content: emailContentOf(initial),
     html: initialHtml,
   });
   useUnsavedWarning(dirty);
@@ -289,6 +295,7 @@ export function AutomationEditor({
           <GlassPanel className="rise-in flex flex-col gap-5">
             <PanelHeader title="The email" />
             <EmailFields
+              siteOrigin={siteOrigin}
               values={values}
               errors={errors}
               onChange={(key) => (value) => set(key)(value)}
@@ -300,7 +307,13 @@ export function AutomationEditor({
         </div>
 
         <GlassPanel className="rise-in xl:sticky xl:top-4 xl:self-start">
-          <EmailPreview html={preview.html} pending={preview.pending} error={preview.error} />
+          <EmailPreview
+            html={preview.html}
+            pending={preview.pending}
+            error={preview.error}
+            subject={values.subject}
+            previewText={values.previewText}
+          />
         </GlassPanel>
       </div>
     </>

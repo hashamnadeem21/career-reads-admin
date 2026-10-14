@@ -8,6 +8,8 @@ import { requireStaff } from "@/lib/auth/require-user";
 import { getAutomation } from "@/lib/automations/queries";
 import { renderEmail } from "@/lib/newsletters/queries";
 import { parseRouteId } from "@/lib/utils";
+import { emailContentOf } from "@/lib/newsletters/email-content";
+import { env } from "@/lib/env";
 
 async function load(param: string) {
   const id = parseRouteId(param);
@@ -33,15 +35,14 @@ export default async function AutomationPage({ params }: PageProps<"/automations
     <>
       {!sendingReady && <SendingSetupNotice />}
       <AutomationEditor
+        siteOrigin={env().PUBLIC_SITE_URL}
         id={a.id}
         initial={{
           name: a.name,
           delayMinutes: a.delayMinutes,
           startsAt: a.startsAt?.toISOString() ?? null,
           endsAt: a.endsAt?.toISOString() ?? null,
-          subject: a.subject,
-          previewText: a.previewText,
-          body: a.body,
+          ...emailContentOf(a),
         }}
         initialHtml={html}
         active={a.active}

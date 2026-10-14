@@ -2,13 +2,9 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { previewNewsletter } from "@/app/actions/newsletters";
+import { emailContentOf, type EmailContent } from "@/lib/newsletters/email-content";
 
-/** The parts every email to subscribers has: newsletters and automations alike. */
-export interface EmailContent {
-  subject: string;
-  previewText: string;
-  body: string;
-}
+export type { EmailContent };
 
 const PREVIEW_DELAY_MS = 400;
 
@@ -41,8 +37,8 @@ export function useLivePreview(content: EmailContent, initial: { content: EmailC
   return { html: preview.html, error: preview.error, pending: preview.renderedFor !== current };
 }
 
-function key({ subject, previewText, body }: EmailContent): string {
-  return JSON.stringify({ subject, previewText, body });
+function key(content: EmailContent): string {
+  return JSON.stringify(emailContentOf(content));
 }
 
 /** Asks before leaving the page with unsaved changes. */

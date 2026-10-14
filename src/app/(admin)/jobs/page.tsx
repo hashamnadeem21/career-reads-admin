@@ -69,7 +69,7 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
           needsReview={isCompany && !user.companyAutoPublish}
           filtered={Boolean(params.q || params.status || params.category || params.company)}
           pageInfo={{ page: list.page, pageSize: list.pageSize, total: list.total }}
-          rows={list.rows.map(({ job, categoryName, accountName }) => ({
+          rows={list.rows.map(({ job, categoryName, accountName, applications }) => ({
             slug: job.slug,
             title: job.title,
             company: !isCompany && accountName ? `${job.company} · company account` : job.company,
@@ -80,6 +80,8 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
             state: jobState(job, now),
             featured: job.featured,
             sample: job.sample,
+            onsiteApply: job.onsiteApply,
+            applications,
           }))}
         />
       </GlassPanel>

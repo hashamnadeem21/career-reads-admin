@@ -51,7 +51,7 @@ export default async function CompanyPage({ params }: PageProps<"/companies/[id]
         actions={
           <CompanyActions
             active={company.active}
-            company={{ id: company.id, name: company.name, website: company.website ?? "", autoPublish: company.autoPublish }}
+            company={{ id: company.id, name: company.name, website: company.website ?? "", autoPublish: company.autoPublish, onsiteApplyEnabled: company.onsiteApplyEnabled }}
           />
         }
       />

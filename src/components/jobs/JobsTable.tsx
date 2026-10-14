@@ -22,6 +22,19 @@ export interface JobListRow {
   state: ContentState;
   featured: boolean;
   sample: boolean;
+  onsiteApply: boolean;
+  /** Applications made on Career Reads. */
+  applications: number;
+}
+
+/** "12 applicants" linking to them, for jobs that take (or took) applications on Career Reads. */
+function Applicants({ row }: { row: JobListRow }) {
+  if (!row.onsiteApply && row.applications === 0) return <span className="text-muted">—</span>;
+  return (
+    <Link href={`/applications?job=${encodeURIComponent(row.slug)}`} className="whitespace-nowrap font-medium text-link hover:underline">
+      <span className="num">{row.applications}</span> applicant{row.applications === 1 ? "" : "s"}
+    </Link>
+  );
 }
 
 export function JobsTable({
@@ -87,6 +100,7 @@ export function JobsTable({
         { key: "location", header: "Location", cell: (r) => <span className="text-muted">{r.location}</span>, className: "hidden xl:table-cell" },
         { key: "posted", header: "Posted", sort: "posted", cell: (r) => <time className="whitespace-nowrap text-muted" dateTime={r.postedAt}>{formatDate(r.postedAt)}</time> },
         { key: "deadline", header: "Deadline", sort: "deadline", cell: (r) => <span className="whitespace-nowrap text-muted">{formatDate(r.deadline)}</span> },
+        { key: "applicants", header: "Applicants", cell: (r) => <Applicants row={r} />, className: "hidden md:table-cell" },
         { key: "status", header: "Status", cell: (r) => <StatusPill state={r.state} /> },
       ]}
       renderCard={(r) => (
@@ -95,6 +109,7 @@ export function JobsTable({
             <span className="line-clamp-1 text-sm font-medium">{r.title}</span>
             <span className="block truncate text-xs text-muted">
               {r.company} · {formatDate(r.postedAt)}
+              {(r.onsiteApply || r.applications > 0) && ` · ${r.applications} applicant${r.applications === 1 ? "" : "s"}`}
             </span>
           </span>
           <StatusPill state={r.state} />

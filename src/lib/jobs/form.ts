@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { descriptionText, jobSchema, summaryFromDescription, type JobInput } from "@/shared/jobs/schema";
 import { SLUG_PATTERN } from "@/shared/content/schema";
+import { MAX_QUESTIONS, questionSchema, type Question } from "@/shared/jobs/questions";
 import { slugify } from "@/lib/utils";
 
 /** Fields the job form posts. Lists arrive as repeated inputs (responsibilities[] etc.). */
@@ -29,6 +30,33 @@ const list = (fd: FormData, key: string) =>
 export function dateInputToIso(value: string): string | undefined {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return value ? value : undefined;
   return `${value}T00:00:00.000Z`;
+}
+
+/**
+ * The question builder posts its questions as one JSON field. Returns them checked, with errors
+ * keyed like the API's (`questions.<index>.<field>`) so they land on the same inputs.
+ */
+export function parseQuestionsField(raw: string): { questions: Question[]; errors: Record<string, string[]> } {
+  const errors: Record<string, string[]> = {};
+  let items: unknown[] = [];
+  try {
+    const parsed: unknown = JSON.parse(raw || "[]");
+    if (Array.isArray(parsed)) items = parsed;
+  } catch {
+    errors.questions = ["The questions couldn't be read. Reload the page and try again."];
+  }
+  if (items.length > MAX_QUESTIONS) errors.questions = [`Ask at most ${MAX_QUESTIONS} questions`];
+  const questions: Question[] = [];
+  items.slice(0, MAX_QUESTIONS).forEach((item, index) => {
+    const parsed = questionSchema.safeParse(item);
+    if (parsed.success) questions.push(parsed.data);
+    else
+      for (const issue of parsed.error.issues) {
+        const key = `questions.${index}.${issue.path.join(".") || "label"}`;
+        errors[key] ??= [issue.message];
+      }
+  });
+  return { questions, errors };
 }
 
 export function jobSlugFrom(title: string, company: string): string {
@@ -68,6 +96,7 @@ export function parseJobForm(fd: FormData): ParsedJobForm {
     responsibilities: list(fd, "responsibilities"),
     requirements: list(fd, "requirements"),
     benefits: list(fd, "benefits"),
+    onsiteApply: fd.get("onsiteApply") === "on",
     applyUrl: optional(text(fd, "applyUrl")),
     applyEmail: optional(text(fd, "applyEmail")),
     postedAt: dateInputToIso(text(fd, "postedAt")) ?? "",
@@ -77,7 +106,7 @@ export function parseJobForm(fd: FormData): ParsedJobForm {
     sample: false,
   };
 
-  const errors: Record<string, string[]> = {};
+  const errors: Record<string, string[]> = parseQuestionsField(text(fd, "questions")).errors;
   if (!SLUG_PATTERN.test(slug)) errors.slug = ["Use lowercase letters, numbers and dashes"];
   if (slug.length > 100) errors.slug = ["Keep the slug under 100 characters"];
   if (candidate.deadline && candidate.postedAt && candidate.deadline < candidate.postedAt) {

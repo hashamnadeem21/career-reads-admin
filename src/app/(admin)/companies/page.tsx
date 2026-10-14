@@ -62,6 +62,7 @@ export default async function CompaniesPage() {
                       <span className="mt-1 flex flex-wrap gap-1.5">
                         {!c.active && <Badge tone="danger">Paused</Badge>}
                         {c.autoPublish && <Badge tone="success">Trusted</Badge>}
+                        {c.onsiteApplyEnabled && <Badge tone="info">Applications on</Badge>}
                         <span className="text-xs font-normal text-muted">
                           {c.members} {c.members === 1 ? "person" : "people"} · {c.jobsTotal} {c.jobsTotal === 1 ? "job" : "jobs"}
                         </span>

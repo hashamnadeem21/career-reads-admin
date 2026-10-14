@@ -548,6 +548,182 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/public/jobs/{slug}/application-form": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApplicationsPublicController_form"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/jobs/{slug}/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApplicationsPublicController_submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApplicationsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/applications/new-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApplicationsController_newCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/applications/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApplicationsController_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/applications/bulk-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApplicationsController_bulkStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/applications/forget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApplicationsController_forget"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/applications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApplicationsController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["ApplicationsController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/applications/{id}/cv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApplicationsController_cv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/applications/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ApplicationsController_setStatus"];
+        trace?: never;
+    };
+    "/applications/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApplicationsController_addNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/media": {
         parameters: {
             query?: never;
@@ -980,6 +1156,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboard/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DashboardController_live"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/dashboard/badges": {
         parameters: {
             query?: never;
@@ -1230,6 +1422,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["PublicController_stats"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/presence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PublicController_presence"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1564,6 +1772,7 @@ export interface operations {
                     website?: string | null;
                     /** @default false */
                     autoPublish?: boolean;
+                    onsiteApplyEnabled?: boolean;
                 };
             };
         };
@@ -1647,6 +1856,7 @@ export interface operations {
                     website?: string | null;
                     /** @default false */
                     autoPublish?: boolean;
+                    onsiteApplyEnabled?: boolean;
                 };
             };
         };
@@ -2036,12 +2246,18 @@ export interface operations {
                     salary?: string;
                     /** @default  */
                     summary?: string;
+                    /** @default  */
+                    description?: string;
                     /** @default [] */
                     responsibilities?: string[];
                     /** @default [] */
                     requirements?: string[];
                     /** @default [] */
                     benefits?: string[];
+                    /** @default false */
+                    onsiteApply?: boolean;
+                    /** @default [] */
+                    questions?: unknown[];
                     /** @default  */
                     applyUrl?: string;
                     /** @default  */
@@ -2126,7 +2342,9 @@ export interface operations {
     };
     JobsController_remove: {
         parameters: {
-            query?: never;
+            query?: {
+                withApplications?: "true" | "false";
+            };
             header?: never;
             path: {
                 slug: string;
@@ -2179,12 +2397,18 @@ export interface operations {
                     salary?: string;
                     /** @default  */
                     summary?: string;
+                    /** @default  */
+                    description?: string;
                     /** @default [] */
                     responsibilities?: string[];
                     /** @default [] */
                     requirements?: string[];
                     /** @default [] */
                     benefits?: string[];
+                    /** @default false */
+                    onsiteApply?: boolean;
+                    /** @default [] */
+                    questions?: unknown[];
                     /** @default  */
                     applyUrl?: string;
                     /** @default  */
@@ -2340,6 +2564,281 @@ export interface operations {
         };
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsPublicController_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsPublicController_submit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    name: string;
+                    email: string;
+                    phone: string;
+                    location?: string;
+                    linkedinUrl?: string;
+                    coverLetter?: string;
+                    /** @description JSON object of answers keyed by question id */
+                    answers?: string;
+                    /** @enum {string} */
+                    consent: "true";
+                    /**
+                     * Format: binary
+                     * @description PDF, DOC or DOCX, up to 5 MB
+                     */
+                    cv: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsController_list: {
+        parameters: {
+            query?: {
+                job?: string;
+                status?: "new" | "reviewed" | "shortlisted" | "interviewing" | "offered" | "hired" | "rejected" | "withdrawn";
+                q?: string;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsController_newCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsController_export: {
+        parameters: {
+            query?: {
+                job?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsController_bulkStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: string[];
+                    /** @enum {string} */
+                    status: "new" | "reviewed" | "shortlisted" | "interviewing" | "offered" | "hired" | "rejected" | "withdrawn";
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsController_forget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: email */
+                    email: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsController_cv: {
+        parameters: {
+            query?: {
+                download?: "true" | "false";
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsController_setStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status: "new" | "reviewed" | "shortlisted" | "interviewing" | "offered" | "hired" | "rejected" | "withdrawn";
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApplicationsController_addNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note: string;
+                };
+            };
+        };
+        responses: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2861,6 +3360,12 @@ export interface operations {
                     previewText?: string;
                     /** @default  */
                     body?: string;
+                    /** @default  */
+                    heroImage?: string;
+                    /** @default  */
+                    ctaLabel?: string;
+                    /** @default  */
+                    ctaUrl?: string;
                 };
             };
         };
@@ -2889,6 +3394,12 @@ export interface operations {
                     previewText?: string;
                     /** @default  */
                     body?: string;
+                    /** @default  */
+                    heroImage?: string;
+                    /** @default  */
+                    ctaLabel?: string;
+                    /** @default  */
+                    ctaUrl?: string;
                 };
             };
         };
@@ -2976,6 +3487,12 @@ export interface operations {
                     previewText?: string;
                     /** @default  */
                     body?: string;
+                    /** @default  */
+                    heroImage?: string;
+                    /** @default  */
+                    ctaLabel?: string;
+                    /** @default  */
+                    ctaUrl?: string;
                 };
             };
         };
@@ -3142,6 +3659,12 @@ export interface operations {
                     previewText?: string;
                     /** @default  */
                     body?: string;
+                    /** @default  */
+                    heroImage?: string;
+                    /** @default  */
+                    ctaLabel?: string;
+                    /** @default  */
+                    ctaUrl?: string;
                     name: string;
                     /**
                      * @default subscribed
@@ -3219,6 +3742,12 @@ export interface operations {
                     previewText?: string;
                     /** @default  */
                     body?: string;
+                    /** @default  */
+                    heroImage?: string;
+                    /** @default  */
+                    ctaLabel?: string;
+                    /** @default  */
+                    ctaUrl?: string;
                     name: string;
                     /**
                      * @default subscribed
@@ -3370,6 +3899,23 @@ export interface operations {
         };
     };
     DashboardController_dashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DashboardController_live: {
         parameters: {
             query?: never;
             header?: never;
@@ -3702,7 +4248,34 @@ export interface operations {
                 "application/json": {
                     path: string;
                     /** @enum {string} */
-                    kind: "view" | "apply_click";
+                    kind: "view" | "apply_click" | "visit";
+                };
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicController_presence: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-client-user-agent"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    leave?: boolean;
                 };
             };
         };

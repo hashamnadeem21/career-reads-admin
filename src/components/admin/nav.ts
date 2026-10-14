@@ -2,6 +2,7 @@ import {
   Briefcase,
   Building2,
   FileText,
+  FileUser,
   FolderTree,
   Image as ImageIcon,
   LayoutDashboard,
@@ -29,6 +30,8 @@ export interface NavBadges {
   unreadMessages?: number;
   /** Company jobs waiting for review (staff only). */
   pendingJobs?: number;
+  /** Applications on Career Reads nobody has opened yet. */
+  newApplications?: number;
 }
 
 const STAFF = STAFF_ROLES;
@@ -38,6 +41,7 @@ export const mainNav: NavEntry[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/posts", label: "Posts", icon: FileText, roles: STAFF },
   { href: "/jobs", label: "Jobs", icon: Briefcase, badgeKey: "pendingJobs" },
+  { href: "/applications", label: "Applicants", icon: FileUser, badgeKey: "newApplications" },
   { href: "/companies", label: "Companies", icon: Building2, roles: SUPER },
   { href: "/categories", label: "Categories", icon: FolderTree, roles: STAFF },
   { href: "/authors", label: "Authors", icon: UserRound, roles: STAFF },

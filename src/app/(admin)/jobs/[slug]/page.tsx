@@ -1,18 +1,20 @@
-import { Building2, CalendarClock, Eye, MessageSquareWarning, MousePointerClick, ShieldCheck } from "lucide-react";
+import { Building2, CalendarClock, Eye, FileUser, MessageSquareWarning, MousePointerClick, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StatusPill } from "@/components/admin/Badge";
+import { buttonClasses } from "@/components/admin/Button";
 import { PageHeader } from "@/components/admin/Glass";
 import { Notice } from "@/components/admin/Notice";
 import { StatStrip } from "@/components/admin/StatStrip";
 import { JobActions } from "@/components/jobs/JobActions";
 import { JobForm } from "@/components/jobs/JobForm";
+import { toDrafts } from "@/lib/jobs/form-values";
 import { getCurrentUser } from "@/lib/auth/session";
 import { requireUser } from "@/lib/auth/require-user";
 import { companyOptions, getCompany } from "@/lib/companies/queries";
 import { daysLeft, jobState } from "@/lib/content-state";
-import { getJob, getJobCategories, getJobStats } from "@/lib/jobs/queries";
+import { getJob, getJobCategories, getJobQuestions, getJobStats } from "@/lib/jobs/queries";
 import { siteUrl } from "@/lib/site-url";
 import { formatNumber } from "@/lib/utils";
 
@@ -31,9 +33,10 @@ export default async function EditJobPage({ params }: PageProps<"/jobs/[slug]">)
   const { slug } = await params;
   const job = await getJob(slug);
   if (!job) notFound();
-  const [categories, stats, companies, owner] = await Promise.all([
+  const [categories, stats, questions, companies, owner] = await Promise.all([
     getJobCategories(),
     getJobStats(slug),
+    getJobQuestions(slug),
     isCompany ? Promise.resolve(undefined) : companyOptions(),
     !isCompany && job.companyId ? getCompany(job.companyId) : null,
   ]);
@@ -68,16 +71,24 @@ export default async function EditJobPage({ params }: PageProps<"/jobs/[slug]">)
           )
         }
         actions={
-          <JobActions
-            slug={job.slug}
-            title={job.title}
-            published={job.status === "published"}
-            live={state === "live"}
-            siteUrl={siteUrl(`/jobs/${job.slug}`)}
-            reviewing={!isCompany && job.review === "pending"}
-            inReview={job.review === "pending"}
-            needsReview={isCompany && !user.companyAutoPublish}
-          />
+          <>
+            {(job.onsiteApply || stats.applications > 0) && (
+              <Link href={`/applications?job=${encodeURIComponent(job.slug)}`} className={buttonClasses({ size: "sm", variant: "primary" })}>
+                <FileUser /> Applicants ({formatNumber(stats.applications)})
+              </Link>
+            )}
+            <JobActions
+              slug={job.slug}
+              title={job.title}
+              published={job.status === "published"}
+              live={state === "live"}
+              siteUrl={siteUrl(`/jobs/${job.slug}`)}
+              reviewing={!isCompany && job.review === "pending"}
+              inReview={job.review === "pending"}
+              needsReview={isCompany && !user.companyAutoPublish}
+              applications={stats.applications}
+            />
+          </>
         }
       />
 
@@ -104,6 +115,9 @@ export default async function EditJobPage({ params }: PageProps<"/jobs/[slug]">)
         items={[
           { icon: Eye, label: "Views", value: formatNumber(stats.views) },
           { icon: MousePointerClick, label: `Apply clicks (${applyRate} of views)`, value: formatNumber(stats.applies) },
+          ...(job.onsiteApply || stats.applications > 0
+            ? [{ icon: FileUser, label: "Applications on Career Reads", value: formatNumber(stats.applications) }]
+            : []),
           { icon: CalendarClock, label: "Days left", value: state === "expired" ? "Closed" : left === null ? "No deadline" : String(left) },
         ]}
       />
@@ -112,7 +126,11 @@ export default async function EditJobPage({ params }: PageProps<"/jobs/[slug]">)
         originalSlug={job.slug}
         categories={categories}
         companies={companies}
-        company={isCompany ? { name: user.companyName ?? job.company, autoPublish: user.companyAutoPublish } : undefined}
+        company={
+          isCompany
+            ? { name: user.companyName ?? job.company, autoPublish: user.companyAutoPublish, onsiteApply: user.companyOnsiteApply }
+            : undefined
+        }
         canFeature={user.role === "super_admin"}
         state={state}
         initial={{
@@ -132,6 +150,8 @@ export default async function EditJobPage({ params }: PageProps<"/jobs/[slug]">)
           responsibilities: job.responsibilities,
           requirements: job.requirements,
           benefits: job.benefits,
+          onsiteApply: job.onsiteApply,
+          questions: toDrafts(questions),
           applyUrl: job.applyUrl ?? "",
           applyEmail: job.applyEmail ?? "",
           postedAt: day(job.postedAt),

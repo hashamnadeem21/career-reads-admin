@@ -12,11 +12,12 @@ import { apiFetch } from "@/lib/api/client";
 export default async function AdminLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   if (user.mustChangePassword) redirect("/account/password");
-  // Staff-only counters; company accounts never query (or see) the inbox.
-  const badges: NavBadges = {};
-  if (isStaff(user.role)) {
-    Object.assign(badges, await apiFetch<NavBadges>("/dashboard/badges"));
-  }
+  // Staff-only counters (company accounts never query or see the inbox), plus new applicants for everyone.
+  const [staffBadges, applicants] = await Promise.all([
+    isStaff(user.role) ? apiFetch<NavBadges>("/dashboard/badges") : Promise.resolve({}),
+    apiFetch<{ count: number }>("/applications/new-count"),
+  ]);
+  const badges: NavBadges = { ...staffBadges, newApplications: applicants.count };
 
   return (
     <div className="min-h-dvh md:p-4 xl:p-5">

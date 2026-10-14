@@ -23,6 +23,7 @@ export function JobActions({
   reviewing = false,
   inReview = false,
   needsReview = false,
+  applications = 0,
 }: {
   slug: string;
   title: string;
@@ -32,6 +33,8 @@ export function JobActions({
   reviewing?: boolean;
   inReview?: boolean;
   needsReview?: boolean;
+  /** On-site applications: deleting the job deletes them too, so the dialog says so. */
+  applications?: number;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -92,9 +95,18 @@ export function JobActions({
           </Button>
         }
         title={`Delete "${title}"?`}
-        description="This removes the job and its stats for good. To hide it but keep it, unpublish instead."
-        confirmLabel="Delete job"
-        onConfirm={() => deleteJob(slug)}
+        description={
+          applications > 0
+            ? `This removes the job, its stats and its ${applications} application${applications === 1 ? "" : "s"} with their CVs, for good. To stop new applications but keep everything, close or unpublish it instead.`
+            : "This removes the job and its stats for good. To hide it but keep it, unpublish instead."
+        }
+        confirmLabel={applications > 0 ? "Delete job and applications" : "Delete job"}
+        onConfirm={async () => {
+          // Only reached when the API refused: applications arrived since the page loaded.
+          const refused = await deleteJob(slug, applications > 0);
+          toast.error(refused.message);
+          router.refresh();
+        }}
       />
     </div>
   );

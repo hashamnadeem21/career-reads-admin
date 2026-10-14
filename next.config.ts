@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const securityHeaders = [
   // The admin is never indexed and never framed.
   { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
-  { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "same-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
@@ -32,6 +31,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
+      // No <base> hijacking, forms posting elsewhere, plugins or framing. The CV route is left out:
+      // Chrome shows PDFs with a plugin, which object-src 'none' would block.
+      {
+        source: "/((?!api/applications/).*)",
+        headers: [{ key: "Content-Security-Policy", value: "base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'none'" }],
+      },
+      // Never framed, except CVs, which the applicant page shows in a same-origin frame.
+      { source: "/((?!api/applications/).*)", headers: [{ key: "X-Frame-Options", value: "DENY" }] },
+      { source: "/api/applications/:path*", headers: [{ key: "X-Frame-Options", value: "SAMEORIGIN" }] },
       // Hashed build assets stay cacheable; everything else is private.
       { source: "/((?!_next/static|_next/image|favicon.ico).*)", headers: noStore },
     ];

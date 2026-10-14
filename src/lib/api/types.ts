@@ -20,6 +20,8 @@ export interface CompanyRow {
   website: string | null;
   autoPublish: boolean;
   active: boolean;
+  /** Set by a super admin: the company's jobs may take applications on Career Reads. */
+  onsiteApplyEnabled: boolean;
   createdAt: Date;
 }
 
@@ -63,6 +65,8 @@ export interface ArticleRow {
 
 export interface JobRow {
   slug: string;
+  /** Never changes (the slug can). */
+  id: string;
   title: string;
   company: string;
   companyId: string | null;
@@ -82,6 +86,8 @@ export interface JobRow {
   responsibilities: string[];
   requirements: string[];
   benefits: string[];
+  /** Takes applications on Career Reads; the link or email, if set, is offered too. */
+  onsiteApply: boolean;
   applyUrl: string | null;
   applyEmail: string | null;
   postedAt: Date;

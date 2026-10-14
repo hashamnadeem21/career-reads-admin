@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { apiFetch, apiGetOrNull } from "@/lib/api/client";
 import type { JobRow } from "@/lib/api/types";
+import type { FormQuestion } from "@/shared/jobs/questions";
 import type { SessionUser } from "@/lib/auth/session";
 
 export const JOB_STATUS_FILTERS = ["live", "draft", "review", "scheduled", "expired"] as const;
@@ -43,6 +44,15 @@ export interface JobListRow {
   job: JobRow;
   categoryName: string | null;
   accountName: string | null;
+  /** Applications made on Career Reads. */
+  applications: number;
+}
+
+export interface JobStats {
+  views: number;
+  applies: number;
+  /** Applications made on Career Reads. */
+  applications: number;
 }
 
 /**
@@ -61,7 +71,7 @@ export function listJobs(_user: SessionUser, params: JobListParams) {
 
 /** One request per page for a job and its stats. 404 (or another company's job) → null. */
 const fetchJob = cache((slug: string) =>
-  apiGetOrNull<{ job: JobRow; stats: { views: number; applies: number } }>(`/jobs/${encodeURIComponent(slug)}`, {
+  apiGetOrNull<{ job: JobRow; questions: FormQuestion[]; stats: JobStats }>(`/jobs/${encodeURIComponent(slug)}`, {
     dates: true,
   }),
 );
@@ -74,9 +84,14 @@ export async function getJob(slug: string): Promise<JobRow | null> {
   return (await fetchJob(slug))?.job ?? null;
 }
 
-/** All-time views and apply clicks for one job page. */
-export async function getJobStats(slug: string): Promise<{ views: number; applies: number }> {
-  return (await fetchJob(slug))?.stats ?? { views: 0, applies: 0 };
+/** All-time views, apply clicks and on-site applications for one job page. */
+export async function getJobStats(slug: string): Promise<JobStats> {
+  return (await fetchJob(slug))?.stats ?? { views: 0, applies: 0, applications: 0 };
+}
+
+/** The job's screening questions for on-site applications, in order. */
+export async function getJobQuestions(slug: string): Promise<FormQuestion[]> {
+  return (await fetchJob(slug))?.questions ?? [];
 }
 
 export function getJobCategories(): Promise<{ slug: string; name: string }[]> {

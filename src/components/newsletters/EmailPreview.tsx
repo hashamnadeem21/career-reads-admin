@@ -10,7 +10,19 @@ const widths = { desktop: "100%", phone: "390px" } as const;
  * The email exactly as the API renders it, in a sandboxed frame (no scripts, no navigation), with
  * a desktop / phone width switch.
  */
-export function EmailPreview({ html, pending, error }: { html: string | null; pending?: boolean; error?: string | null }) {
+export function EmailPreview({
+  html,
+  pending,
+  error,
+  subject,
+  previewText,
+}: {
+  html: string | null;
+  pending?: boolean;
+  error?: string | null;
+  subject: string;
+  previewText: string;
+}) {
   const [device, setDevice] = useState<keyof typeof widths>("desktop");
   return (
     <div className="flex flex-col gap-3">
@@ -33,7 +45,19 @@ export function EmailPreview({ html, pending, error }: { html: string | null; pe
           ))}
         </div>
       </div>
-      <div className="flex justify-center overflow-hidden rounded-xl bg-[#f1f5f9]">
+      {/* How it shows in the inbox list: sender, subject and the preview line. */}
+      <div className="glass-inset flex items-center gap-3 px-3 py-2.5" aria-label="Inbox preview">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/icon.svg" alt="" className="h-8 w-8 shrink-0 rounded-full" />
+        <div className="min-w-0 text-sm">
+          <p className="font-semibold text-ink">Career Reads</p>
+          <p className="truncate">
+            <span className="font-medium text-ink">{subject || "Subject"}</span>
+            <span className="text-muted"> — {previewText || "Add preview text so inboxes don't show the start of the email here"}</span>
+          </p>
+        </div>
+      </div>
+      <div className="flex justify-center overflow-hidden rounded-xl bg-[#eef2f7]">
         {html === null ? (
           <div className="h-[70vh] w-full animate-pulse bg-inset" aria-hidden />
         ) : (

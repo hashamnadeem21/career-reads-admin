@@ -20,6 +20,7 @@ const POLL_MS = 3000;
 export interface NewsletterReportData {
   id: number;
   subject: string;
+  previewText: string;
   status: Exclude<Status, "draft">;
   recipients: number;
   sentCount: number;
@@ -139,7 +140,7 @@ export function NewsletterReport({ data, html, canSend }: { data: NewsletterRepo
       )}
 
       <GlassPanel className="rise-in">
-        <EmailPreview html={html} />
+        <EmailPreview html={html} subject={data.subject} previewText={data.previewText} />
       </GlassPanel>
     </>
   );

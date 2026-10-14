@@ -22,6 +22,9 @@ export interface AutomationInput {
   subject: string;
   previewText: string;
   body: string;
+  heroImage: string;
+  ctaLabel: string;
+  ctaUrl: string;
   /** ISO, worked out in the browser so dates mean the admin's local time. */
   startsAt: string | null;
   endsAt: string | null;
@@ -34,6 +37,9 @@ const inputSchema = z.object({
   subject: z.string().max(1000),
   previewText: z.string().max(1000),
   body: z.string().max(200_000),
+  heroImage: z.string().max(1000),
+  ctaLabel: z.string().max(1000),
+  ctaUrl: z.string().max(1000),
   startsAt: z.iso.datetime().nullable(),
   endsAt: z.iso.datetime().nullable(),
 });

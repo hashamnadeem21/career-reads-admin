@@ -1,4 +1,5 @@
 import "server-only";
+import type { EmailContent } from "@/lib/newsletters/email-content";
 import { apiFetch, apiGetOrNull } from "@/lib/api/client";
 import type { NewsletterListRow, NewsletterRow } from "@/lib/api/types";
 
@@ -20,7 +21,7 @@ export function getNewsletter(id: number) {
 }
 
 /** The email HTML for a saved newsletter (first paint of the preview; the editor updates it live). */
-export async function renderEmail(input: { subject: string; previewText: string; body: string }): Promise<string> {
+export async function renderEmail(input: EmailContent): Promise<string> {
   const { html } = await apiFetch<{ html: string }>("/newsletters/preview", { method: "POST", body: input });
   return html;
 }

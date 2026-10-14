@@ -137,6 +137,9 @@ export interface NewsletterRow {
   id: number;
   subject: string;
   previewText: string;
+  heroImage: string;
+  ctaLabel: string;
+  ctaUrl: string;
   /** Markdown. */
   body: string;
   status: NewsletterStatus;
@@ -171,6 +174,9 @@ export interface AutomationRow {
   delayMinutes: number;
   subject: string;
   previewText: string;
+  heroImage: string;
+  ctaLabel: string;
+  ctaUrl: string;
   /** Markdown. */
   body: string;
   active: boolean;

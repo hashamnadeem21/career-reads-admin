@@ -30,7 +30,15 @@ const COMPANY_PAGES = new Set([
 const COMPANY_ROUTES = new Set(["api/applications/[id]/cv/route.ts", "api/export/applications/route.ts"]);
 
 /** Super-admin-only pages and actions. */
-const SUPER_ADMIN_PAGES = ["(admin)/settings/page.tsx", "(admin)/users/page.tsx", "(admin)/companies/page.tsx", "(admin)/companies/[id]/page.tsx"];
+const SUPER_ADMIN_PAGES = [
+  "(admin)/settings/page.tsx",
+  "(admin)/users/page.tsx",
+  "(admin)/companies/page.tsx",
+  "(admin)/companies/[id]/page.tsx",
+  // Candidate accounts (website sign-ups): personal data, super admin only.
+  "(admin)/candidates/page.tsx",
+  "(admin)/candidates/[id]/page.tsx",
+];
 
 const GUARD = /await (requireUser|requireStaff|requireSuperAdmin)\(/;
 
@@ -102,6 +110,8 @@ describe("server-side authorization", () => {
     for (const fn of ["inviteUser", "revokeInvite", "changeRole", "removeUser"]) expect(users.get(fn), fn).toMatch(/requireSuperAdmin\(\)/);
     expect(exportedFunctions(read("actions/settings.ts")).get("saveSettings")).toMatch(/requireSuperAdmin\(\)/);
     for (const [fn, body] of exportedFunctions(read("actions/companies.ts"))) expect(body, fn).toMatch(/requireSuperAdmin\(\)/);
+    for (const [fn, body] of exportedFunctions(read("actions/candidates.ts"))) expect(body, fn).toMatch(/requireSuperAdmin\(\)/);
+    expect(read("api/export/candidates/route.ts")).toMatch(/await requireSuperAdmin\(\)/);
   });
 
   it("only sign-in, sign-out and invite links call the API without the user's token", () => {

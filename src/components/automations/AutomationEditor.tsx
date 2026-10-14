@@ -15,7 +15,8 @@ import { EmailFields } from "@/components/newsletters/EmailFields";
 import { EmailPreview } from "@/components/newsletters/EmailPreview";
 import { TestSendDialog } from "@/components/newsletters/SendDialogs";
 import { useLivePreview, useSaveShortcut, useUnsavedWarning } from "@/components/newsletters/use-email-editor";
-import { type DelayUnit, describeTrigger, joinDelay, splitDelay } from "@/lib/automations/delay";
+import type { AutomationTrigger } from "@/lib/api/types";
+import { type DelayUnit, describeTrigger, joinDelay, splitDelay, TRIGGER_LABELS } from "@/lib/automations/delay";
 import { fromLocalInput, toLocalInput } from "@/lib/local-time";
 import { ActiveSwitch } from "./ActiveSwitch";
 import { AutomationStatus } from "./AutomationStatus";
@@ -24,6 +25,7 @@ import { emailContentOf } from "@/lib/newsletters/email-content";
 /** What the form edits. Dates are local "2026-10-14T09:00" strings, turned into ISO on save. */
 interface FormValues {
   name: string;
+  trigger: AutomationTrigger;
   delayed: "now" | "later";
   delayAmount: string;
   delayUnit: DelayUnit;
@@ -39,6 +41,7 @@ interface FormValues {
 
 export interface AutomationInitial {
   name: string;
+  trigger: AutomationTrigger;
   delayMinutes: number;
   startsAt: string | null;
   endsAt: string | null;
@@ -54,6 +57,7 @@ function toForm(a: AutomationInitial): FormValues {
   const { amount, unit } = splitDelay(a.delayMinutes);
   return {
     name: a.name,
+    trigger: a.trigger,
     delayed: a.delayMinutes > 0 ? "later" : "now",
     delayAmount: a.delayMinutes > 0 ? String(amount) : "1",
     delayUnit: a.delayMinutes > 0 ? unit : "days",
@@ -70,7 +74,7 @@ function delayMinutes(v: FormValues): number {
 function toInput(v: FormValues): AutomationInput {
   return {
     name: v.name,
-    trigger: "subscribed",
+    trigger: v.trigger,
     delayMinutes: delayMinutes(v),
     ...emailContentOf(v),
     startsAt: fromLocalInput(v.startsAt),
@@ -160,7 +164,7 @@ export function AutomationEditor({
           !id
             ? "Set when it fires and write the email. It starts switched off."
             : active
-              ? "It's on: new subscribers get this email automatically. Edits apply to emails not sent yet."
+              ? `It's on: ${values.trigger === "subscribed" ? "new subscribers" : "new candidate accounts"} get this email automatically. Edits apply to emails not sent yet.`
               : canToggle
                 ? "Send yourself a test, then switch it on."
                 : "Write and test it here. A super admin switches it on."
@@ -211,7 +215,7 @@ export function AutomationEditor({
               title="When it's sent"
               description={
                 <>
-                  {describeTrigger("subscribed", minutes)}
+                  {describeTrigger(values.trigger, minutes)}
                   {launch && (
                     <>
                       , from <LocalTime date={launch} />
@@ -229,9 +233,21 @@ export function AutomationEditor({
             <Field label="Name" htmlFor="name" required error={errors.name} hint="Only you see this, e.g. “Welcome email”.">
               <Input id="name" value={values.name} onChange={(e) => set("name")(e.target.value)} invalid={Boolean(errors.name)} placeholder="Welcome email" />
             </Field>
-            <Field label="Trigger" htmlFor="trigger">
-              <Select id="trigger" value="subscribed" onChange={() => undefined}>
-                <option value="subscribed">Someone subscribes to the newsletter</option>
+            <Field
+              label="Trigger"
+              htmlFor="trigger"
+              hint={
+                values.trigger === "candidate_signed_up"
+                  ? "Sent once to each new account (Google or email). Write {{first_name}} for their first name. People who signed up with a password get a “Confirm your email” button in place of your button."
+                  : undefined
+              }
+            >
+              <Select id="trigger" value={values.trigger} onChange={(e) => set("trigger")(e.target.value as AutomationTrigger)}>
+                {(Object.keys(TRIGGER_LABELS) as AutomationTrigger[]).map((t) => (
+                  <option key={t} value={t}>
+                    {TRIGGER_LABELS[t]}
+                  </option>
+                ))}
               </Select>
             </Field>
             <div className="flex flex-col gap-2">

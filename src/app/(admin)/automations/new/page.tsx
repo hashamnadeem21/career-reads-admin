@@ -17,7 +17,7 @@ export default async function NewAutomationPage() {
       <AutomationEditor
         siteOrigin={env().PUBLIC_SITE_URL}
         id={null}
-        initial={{ name: "", delayMinutes: 0, startsAt: null, endsAt: null, subject: "", previewText: "", body: "", ...EMAIL_EXTRAS }}
+        initial={{ name: "", trigger: "subscribed", delayMinutes: 0, startsAt: null, endsAt: null, subject: "", previewText: "", body: "", ...EMAIL_EXTRAS }}
         initialHtml={null}
         active={false}
         sendingReady={sendingReady}

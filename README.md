@@ -70,11 +70,14 @@ blognest-admin ──Server Actions / pages──▶ blognest-api ──▶ Post
 | Jobs | All jobs; approve or send back company jobs | All jobs; approve or send back company jobs | Only their company's jobs |
 | Posts, categories, authors, media, messages, activity, help | ✅ | ✅ | 403 |
 | Companies (every company's stats, invites, pause) | ✅ | 403 | 403 |
+| Candidates (website accounts, history, CSV) | ✅ | 403 | 403 |
 | Users, Settings | ✅ | 403 | 403 |
 
 **Adding a company:** Companies → **New company** → **Invite**. Send the one-time link (valid 7 days) to someone at the company; they choose a password and land on their company dashboard.
 
 **Review flow:** by default, when a company publishes a new job or edits a live one, it stays off the site with status **In review**. Staff see a count on **Jobs** and in notifications, open the job and choose **Approve & publish** or **Send back** (with a note the company sees). Turn on **Trusted** for a company (Companies → the company → Edit) to let its jobs go live without review. Companies can't mark jobs as Featured; that stays a Career Reads decision.
+
+**Candidates:** people who created an account on the website to apply on Career Reads (with Google, or email and password). Super admins see each account's sign-up method, email confirmation, sign-ins, applications and newsletter status, a timeline per person, and a CSV (it follows the filters) for email marketing. Deleting an account removes its applications, CVs and newsletter subscription. The welcome email for new accounts is an automation (Automations → trigger "A candidate creates an account"); write `{{first_name}}` for their first name.
 
 **Stats:** views and Apply clicks come from the site's cookie-free counters (`daily_stats`), per job page per day. Companies see their own; super admins see every company on **Companies**, and each company's chart and per-job table on its page.
 

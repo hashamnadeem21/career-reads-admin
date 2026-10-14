@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { apiFetch } from "@/lib/api/client";
-import type { AutomationRow } from "@/lib/api/types";
+import type { AutomationRow, AutomationTrigger } from "@/lib/api/types";
 import { type ActionResult, toResult } from "@/lib/api/results";
 import { requireStaff, requireSuperAdmin } from "@/lib/auth/require-user";
 
@@ -17,7 +17,7 @@ const path = (automationId: number, action = "") => `/automations/${id.parse(aut
 
 export interface AutomationInput {
   name: string;
-  trigger: "subscribed";
+  trigger: AutomationTrigger;
   delayMinutes: number;
   subject: string;
   previewText: string;
@@ -32,7 +32,7 @@ export interface AutomationInput {
 
 const inputSchema = z.object({
   name: z.string().max(1000),
-  trigger: z.literal("subscribed"),
+  trigger: z.enum(["subscribed", "candidate_signed_up"]),
   delayMinutes: z.number().int(),
   subject: z.string().max(1000),
   previewText: z.string().max(1000),

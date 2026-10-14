@@ -1,3 +1,5 @@
+import type { AutomationTrigger } from "@/lib/api/types";
+
 /** Automation delays are stored in minutes; the form shows them as an amount and a unit. */
 export type DelayUnit = "minutes" | "hours" | "days";
 
@@ -21,9 +23,14 @@ export function describeDelay(minutes: number): string {
   return `${amount} ${amount === 1 ? unit.slice(0, -1) : unit} after`;
 }
 
+export const TRIGGER_LABELS: Record<AutomationTrigger, string> = {
+  subscribed: "Someone subscribes to the newsletter",
+  candidate_signed_up: "A candidate creates an account",
+};
+
 /** "When someone subscribes · straight away" style summary of an automation's trigger. */
-export function describeTrigger(trigger: "subscribed", delayMinutes: number): string {
-  const when = trigger === "subscribed" ? "someone subscribes" : trigger;
+export function describeTrigger(trigger: AutomationTrigger, delayMinutes: number): string {
+  const when = trigger === "subscribed" ? "someone subscribes" : "a candidate creates an account";
   return delayMinutes <= 0 ? `Straight away when ${when}` : `${capitalise(describeDelay(delayMinutes))} ${when}`;
 }
 

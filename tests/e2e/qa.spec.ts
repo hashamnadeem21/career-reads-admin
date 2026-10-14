@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { signIn } from "./helpers";
 
 /** Design QA checklist (docs/ADMIN_DESIGN.md §9), automated where possible. */
-const PAGES = ["/", "/posts", "/posts/new", "/posts/how-passkeys-work", "/jobs", "/jobs/new", "/media", "/categories", "/authors", "/messages", "/messages?tab=subscribers", "/settings", "/users", "/companies", "/activity", "/help", "/account/password"];
+const PAGES = ["/", "/posts", "/posts/new", "/posts/how-passkeys-work", "/jobs", "/jobs/new", "/media", "/categories", "/authors", "/messages", "/messages?tab=subscribers", "/settings", "/users", "/companies", "/candidates", "/activity", "/help", "/account/password"];
 /** What a company account sees. */
 const COMPANY_PAGES = ["/", "/jobs", "/jobs/new", "/account/password"];
 

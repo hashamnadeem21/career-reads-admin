@@ -52,6 +52,7 @@ function jobBody(formData: FormData, slug: string) {
     experience: text("experience"),
     salary: text("salary"),
     summary: text("summary"),
+    description: text("description"),
     ...lists,
     applyUrl: text("applyUrl"),
     applyEmail: text("applyEmail"),

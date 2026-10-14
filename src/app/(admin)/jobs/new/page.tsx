@@ -30,6 +30,7 @@ export default async function NewJobPage() {
         categories={categories}
         companies={companies}
         company={isCompany ? { name: user.companyName ?? "", autoPublish: user.companyAutoPublish } : undefined}
+        canFeature={user.role === "super_admin"}
       />
     </>
   );

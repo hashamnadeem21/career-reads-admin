@@ -309,3 +309,30 @@
   scrollbar-width: thin;
   scrollbar-color: var(--glass-divider) transparent;
 }
+
+/* Rich-text editor (job description). Prose colours follow the admin theme. */
+.rich-text {
+  --tw-prose-body: var(--ink);
+  --tw-prose-headings: var(--ink);
+  --tw-prose-bold: var(--ink);
+  --tw-prose-links: var(--primary-text);
+  --tw-prose-bullets: var(--ink-muted);
+  --tw-prose-counters: var(--ink-muted);
+  --tw-prose-quotes: var(--ink);
+  --tw-prose-quote-borders: var(--primary);
+  --tw-prose-hr: var(--glass-divider);
+}
+.rich-text :is(h2, h3):first-child,
+.rich-text > :first-child {
+  margin-top: 0;
+}
+.rich-text p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--ink-faint);
+  pointer-events: none;
+}
+.rich-text li > p {
+  margin-block: 0;
+}

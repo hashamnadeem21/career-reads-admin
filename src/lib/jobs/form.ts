@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { jobSchema, type JobInput } from "@/shared/jobs/schema";
+import { descriptionText, jobSchema, summaryFromDescription, type JobInput } from "@/shared/jobs/schema";
 import { SLUG_PATTERN } from "@/shared/content/schema";
 import { slugify } from "@/lib/utils";
 
@@ -48,6 +48,9 @@ export function parseJobForm(fd: FormData): ParsedJobForm {
   const slugInput = text(fd, "slug").toLowerCase();
   const slug = slugInput || jobSlugFrom(title, company);
   const originalSlug = text(fd, "originalSlug") || null;
+  // The API sanitizes the HTML; here it only drives validation, the same way the API does.
+  const html = text(fd, "description");
+  const description = descriptionText(html) ? html : undefined;
 
   const candidate = {
     title,
@@ -60,7 +63,8 @@ export function parseJobForm(fd: FormData): ParsedJobForm {
     category: text(fd, "category"),
     experience: text(fd, "experience"),
     salary: optional(text(fd, "salary")),
-    summary: text(fd, "summary"),
+    summary: description ? summaryFromDescription(description) : text(fd, "summary"),
+    description,
     responsibilities: list(fd, "responsibilities"),
     requirements: list(fd, "requirements"),
     benefits: list(fd, "benefits"),
@@ -85,6 +89,11 @@ export function parseJobForm(fd: FormData): ParsedJobForm {
     for (const [field, messages] of Object.entries(z.flattenError(parsed.error).fieldErrors)) {
       if (messages?.length) errors[field] = messages as string[];
     }
+  }
+  // With a description the summary is derived from it, so its errors belong to the editor.
+  if (description && errors.summary) {
+    errors.description ??= ["Write at least 30 characters"];
+    delete errors.summary;
   }
   if (Object.keys(errors).length || !parsed.success) return { slug, originalSlug, errors, values };
   return { slug, originalSlug, data: parsed.data, values };

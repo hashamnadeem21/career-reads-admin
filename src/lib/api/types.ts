@@ -77,6 +77,8 @@ export interface JobRow {
   experience: string;
   salary: string | null;
   summary: string;
+  /** Rich-text job description (sanitized HTML). Null on jobs written before the editor. */
+  description: string | null;
   responsibilities: string[];
   requirements: string[];
   benefits: string[];

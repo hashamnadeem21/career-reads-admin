@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Link2, Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/admin/Badge";
 import { Button } from "@/components/admin/Button";
 import { Field, Input, Select } from "@/components/admin/Field";
 import { ConfirmDialog, GlassDialog } from "@/components/admin/GlassDialog";
+import { InviteSent } from "@/components/users/InviteSent";
 import { roleLabels } from "@/lib/auth/roles";
 import { formatDate } from "@/lib/utils";
 
@@ -36,8 +37,7 @@ function InviteDialog() {
   const [open, setOpen] = useState(false);
   const [v, setV] = useState({ email: "", name: "", role: "editor" });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [link, setLink] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [sent, setSent] = useState<{ link: string; emailed: boolean; emailError?: string } | null>(null);
   const [pending, start] = useTransition();
 
   return (
@@ -46,7 +46,7 @@ function InviteDialog() {
       onOpenChange={(o) => {
         setOpen(o);
         if (!o) {
-          setLink(null);
+          setSent(null);
           setV({ email: "", name: "", role: "editor" });
           setErrors({});
         }
@@ -57,26 +57,10 @@ function InviteDialog() {
         </Button>
       }
       title="Invite a team member"
-      description="They get a one-time link (valid 7 days) to choose their own password."
+      description="We email them a one-time link (valid 7 days) to choose their own password. You can copy it too."
     >
-      {link ? (
-        <div className="flex flex-col gap-3">
-          <p className="text-sm">Send this link to {v.name}. It works once and expires in 7 days.</p>
-          <div className="glass-inset flex items-center gap-2 p-2 focus-within:shadow-[0_0_0_4px_var(--primary-glow)]">
-            <Link2 className="h-4 w-4 shrink-0 text-muted" aria-hidden />
-            <input readOnly value={link} aria-label="Invite link" className="min-w-0 flex-1 bg-transparent text-xs outline-none focus-visible:shadow-none" onFocus={(e) => e.target.select()} />
-            <Button
-              size="sm"
-              onClick={async () => {
-                await navigator.clipboard.writeText(link);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
-              }}
-            >
-              {copied ? <Check /> : <Copy />} {copied ? "Copied" : "Copy"}
-            </Button>
-          </div>
-        </div>
+      {sent ? (
+        <InviteSent name={v.name} email={v.email} {...sent} />
       ) : (
         <form
           className="flex flex-col gap-4"
@@ -86,7 +70,7 @@ function InviteDialog() {
               const r = await inviteUser(v);
               setErrors(r.errors ?? {});
               if (r.ok && r.link) {
-                setLink(r.link);
+                setSent({ link: r.link, emailed: Boolean(r.emailed), emailError: r.emailError });
                 router.refresh();
               } else toast.error(r.message);
             });
@@ -105,7 +89,7 @@ function InviteDialog() {
             </Select>
           </Field>
           <Button type="submit" variant="primary" disabled={pending}>
-            {pending ? "Creating…" : "Create invite link"}
+            {pending ? "Sending…" : "Send invite"}
           </Button>
         </form>
       )}

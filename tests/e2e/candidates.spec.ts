@@ -60,8 +60,8 @@ test("signing up on the website, then applying before confirming the email", asy
   await apply.locator('input[name="cv"]').setInputFiles({ name: "Casey CV.pdf", mimeType: "application/pdf", buffer: PDF });
   await apply.getByRole("button", { name: "Next" }).click();
   await apply.getByRole("checkbox").first().check();
-  // The form refuses a send within a second of opening (a bot check); a person is never that quick.
-  await visitor.waitForTimeout(1200);
+  // The form refuses a send within a few seconds of opening (the site's bot check, MIN_FILL_MS).
+  await visitor.waitForTimeout(3500);
   await apply.getByRole("button", { name: "Send application" }).click();
   await expect(visitor.getByText("Almost done: confirm your email")).toBeVisible();
 
@@ -110,19 +110,27 @@ test("the CSV follows the filters", async ({ page }) => {
   expect(lines[1]).toContain(`${CANDIDATE.name},${CANDIDATE.email},Email and password,No,`);
 });
 
-test("only the super admin can open Candidates", async ({ page }) => {
+test("only the super admin can open Candidates", async ({ page, browser }) => {
   await signIn(page, "editor");
   await expect(page.getByRole("link", { name: "Candidates" })).toHaveCount(0);
-  expect((await page.goto("/candidates"))?.status()).toBe(403);
+  // The page streams its loading screen (HTTP 200) before the role check, so check what's shown.
+  await page.goto("/candidates");
+  await expect(page.getByText("You don't have access to this page")).toBeVisible();
+  await expect(page.getByText(CANDIDATE.email)).toHaveCount(0);
   expect((await page.request.get("/api/export/candidates")).status()).toBe(403);
-  await signIn(page, "acme");
-  expect((await page.goto("/candidates"))?.status()).toBe(403);
+  // A fresh session: /login skips straight past for someone already signed in.
+  const company = await (await browser.newContext({ baseURL: new URL(page.url()).origin })).newPage();
+  await signIn(company, "acme");
+  await company.goto(`/candidates/${"0".repeat(8)}-0000-4000-8000-${"0".repeat(12)}`);
+  await expect(company.getByText("You don't have access to this page")).toBeVisible();
+  await company.close();
 });
 
 test("deleting the account removes it everywhere and signs them out", async ({ page }) => {
   await signIn(page);
   await page.goto("/candidates");
   await page.getByRole("row", { name: new RegExp(CANDIDATE.name) }).getByRole("link").first().click();
+  const id = new URL(page.url()).pathname.split("/").pop()!;
   await page.getByRole("button", { name: "Delete account" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Delete everything" }).click();
   await expect(page).toHaveURL(/\/candidates$/);
@@ -130,6 +138,6 @@ test("deleting the account removes it everywhere and signs them out", async ({ p
 
   const left = await testSql("select count(*)::int as n from candidates where email = $1", [CANDIDATE.email]);
   expect(left.rows[0].n).toBe(0);
-  const sessions = await testSql("select count(*)::int as n from candidate_sessions");
+  const sessions = await testSql("select count(*)::int as n from candidate_sessions where candidate_id = $1", [id]);
   expect(sessions.rows[0].n).toBe(0);
 });

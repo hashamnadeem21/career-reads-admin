@@ -18,6 +18,7 @@ describe("automation delays", () => {
     expect(describeDelay(60)).toBe("1 hour after");
     expect(describeTrigger("subscribed", 0)).toBe("Straight away when someone subscribes");
     expect(describeTrigger("subscribed", 4320)).toBe("3 days after someone subscribes");
+    expect(describeTrigger("candidate_signed_up", 0)).toBe("Straight away when a candidate creates an account");
   });
 });
 

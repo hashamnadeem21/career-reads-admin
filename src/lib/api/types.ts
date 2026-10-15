@@ -167,7 +167,8 @@ export interface NewsletterRow {
 /** Lists leave out the body. */
 export type NewsletterListRow = Omit<NewsletterRow, "body">;
 
-export type AutomationTrigger = "subscribed";
+/** subscribed: joins the newsletter. candidate_signed_up: creates a candidate account on the website. */
+export type AutomationTrigger = "subscribed" | "candidate_signed_up";
 export type AutomationDeliveryStatus = "pending" | "sent" | "failed" | "skipped";
 export type DeliveryStats = Record<AutomationDeliveryStatus, number>;
 

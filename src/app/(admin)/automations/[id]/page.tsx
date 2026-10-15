@@ -39,6 +39,7 @@ export default async function AutomationPage({ params }: PageProps<"/automations
         id={a.id}
         initial={{
           name: a.name,
+          trigger: a.trigger,
           delayMinutes: a.delayMinutes,
           startsAt: a.startsAt?.toISOString() ?? null,
           endsAt: a.endsAt?.toISOString() ?? null,

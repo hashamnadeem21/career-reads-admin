@@ -11,7 +11,7 @@ export function Avatar({ name, src, size = 36, className }: { name: string; src?
     >
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt="" className="h-full w-full object-cover" />
+        <img src={src} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
       ) : (
         initials(name)
       )}

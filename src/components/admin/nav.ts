@@ -1,6 +1,7 @@
 import {
   Briefcase,
   Building2,
+  ClipboardCheck,
   FileText,
   FileUser,
   FolderTree,
@@ -33,6 +34,8 @@ export interface NavBadges {
   pendingJobs?: number;
   /** Applications on Career Reads nobody has opened yet. */
   newApplications?: number;
+  /** Company account requests waiting for review (super admins only). */
+  companyRequests?: number;
 }
 
 const STAFF = STAFF_ROLES;
@@ -45,6 +48,7 @@ export const mainNav: NavEntry[] = [
   { href: "/applications", label: "Applicants", icon: FileUser, badgeKey: "newApplications" },
   { href: "/candidates", label: "Candidates", icon: UserRoundCheck, roles: SUPER },
   { href: "/companies", label: "Companies", icon: Building2, roles: SUPER },
+  { href: "/company-requests", label: "Company requests", icon: ClipboardCheck, roles: SUPER, badgeKey: "companyRequests" },
   { href: "/categories", label: "Categories", icon: FolderTree, roles: STAFF },
   { href: "/authors", label: "Authors", icon: UserRound, roles: STAFF },
   { href: "/media", label: "Media", icon: ImageIcon, roles: STAFF },

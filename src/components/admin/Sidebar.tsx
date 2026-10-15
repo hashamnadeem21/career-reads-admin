@@ -43,7 +43,7 @@ export function NavItem({ entry, active, badge, rail, onNavigate }: { entry: Nav
         >
           <span className="sr-only">, </span>
           {badge}
-          <span className="sr-only">{entry.badgeKey === "pendingJobs" ? " waiting for review" : entry.badgeKey === "newApplications" ? " new" : " unread"}</span>
+          <span className="sr-only">{entry.badgeKey === "pendingJobs" || entry.badgeKey === "companyRequests" ? " waiting for review" : entry.badgeKey === "newApplications" ? " new" : " unread"}</span>
         </span>
       ) : null}
     </Link>

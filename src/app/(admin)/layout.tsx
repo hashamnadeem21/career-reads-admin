@@ -13,11 +13,12 @@ export default async function AdminLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   if (user.mustChangePassword) redirect("/account/password");
   // Staff-only counters (company accounts never query or see the inbox), plus new applicants for everyone.
-  const [staffBadges, applicants] = await Promise.all([
+  const [staffBadges, applicants, companyRequests] = await Promise.all([
     isStaff(user.role) ? apiFetch<NavBadges>("/dashboard/badges") : Promise.resolve({}),
     apiFetch<{ count: number }>("/applications/new-count"),
+    user.role === "super_admin" ? apiFetch<{ count: number }>("/company-requests/pending-count") : Promise.resolve(null),
   ]);
-  const badges: NavBadges = { ...staffBadges, newApplications: applicants.count };
+  const badges: NavBadges = { ...staffBadges, newApplications: applicants.count, companyRequests: companyRequests?.count };
 
   return (
     <div className="min-h-dvh md:p-4 xl:p-5">

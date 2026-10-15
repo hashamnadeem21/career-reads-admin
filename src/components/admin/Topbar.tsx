@@ -53,7 +53,8 @@ export function Topbar({ user, badges }: { user: SessionUser; badges: NavBadges 
   const unread = badges.unreadMessages ?? 0;
   const pendingJobs = badges.pendingJobs ?? 0;
   const newApplications = badges.newApplications ?? 0;
-  const total = unread + pendingJobs + newApplications;
+  const companyRequests = badges.companyRequests ?? 0;
+  const total = unread + pendingJobs + newApplications + companyRequests;
   const pathname = usePathname();
   const onDashboard = pathname === "/";
   const staff = isStaff(user.role);
@@ -87,6 +88,12 @@ export function Topbar({ user, badges }: { user: SessionUser; badges: NavBadges 
                   <Link href="/applications?status=new" className="mt-3 flex items-center gap-3 rounded-xl bg-inset p-3 text-sm hover:bg-hover">
                     <span className="h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
                     {newApplications} new {newApplications === 1 ? "applicant" : "applicants"}
+                  </Link>
+                )}
+                {companyRequests > 0 && (
+                  <Link href="/company-requests" className="mt-3 flex items-center gap-3 rounded-xl bg-inset p-3 text-sm hover:bg-hover">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
+                    {companyRequests} company {companyRequests === 1 ? "request" : "requests"} to review
                   </Link>
                 )}
                 {pendingJobs > 0 && (
